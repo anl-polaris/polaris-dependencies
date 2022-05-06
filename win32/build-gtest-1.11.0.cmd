@@ -18,7 +18,7 @@ set a=%a:/=\%
 echo %a%
 set BASEDIR=%a%
 
-set FILEDIR=%~dp0
+set FILEDIR=%~dp0..\
 
 REM  see if Vsual Studio is already set
 SET VCROOT=
@@ -46,7 +46,7 @@ IF "%VisualStudioVersion%" == "16.0" (
 
 :: Download and expand source files
 set GTESTZIPFILE=%BASEDIR%\release-1.11.0.zip
-set GTESTDIR=%BASEDIR%\googletest-release-1.1.0
+set GTESTDIR=%BASEDIR%\googletest-release-1.11.0
 
 echo file=%GTESTZIPFILE%
 echo dir=%GTESTDIR%

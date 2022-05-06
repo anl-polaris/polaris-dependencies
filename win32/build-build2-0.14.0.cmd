@@ -1,5 +1,5 @@
 set deps_dir=%1
-set FILEDIR=%~dp0
+set FILEDIR=%~dp0..\
 mkdir %deps_dir%\build2-build
 mkdir %deps_dir%\build2
 cd /D %deps_dir%\build2-build

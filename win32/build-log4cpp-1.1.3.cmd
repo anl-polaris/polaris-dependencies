@@ -16,7 +16,7 @@ set a=%a:/=\%
 echo %a%
 set BASEDIR=%a%
 
-set FILEDIR=%~dp0
+set FILEDIR=%~dp0..\
 
 IF NOT EXIST %BASEDIR% (mkdir %BASEDIR%)
 
@@ -54,7 +54,7 @@ IF NOT "%VCROOT%" == "" (
 
 :: Download and expand source files
 set TARBALL=%BASEDIR%\log4cpp-1.1.3.tar.gz
-set DESTDIR=%BASEDIR%\log4cpp
+set DESTDIR=%BASEDIR%\log4cpp-1.1.3
 set BUILDDIR=%DESTDIR%\CMAKE_BUILD
 
 echo file=%TARBALL%

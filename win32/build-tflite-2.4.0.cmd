@@ -16,7 +16,7 @@ set a=%a:\=\%
 echo %a%
 set BASEDIR=%a%
 
-set FILEDIR=%~dp0
+set FILEDIR=%~dp0..\
 
 IF NOT EXIST %BASEDIR% (mkdir %BASEDIR%)
 
