@@ -1,0 +1,5 @@
+# Set the default behavior
+* text=auto
+
+# Linux scripts should be saved as lf
+*.sh text eol=lf
