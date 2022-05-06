@@ -11,7 +11,7 @@ else
 fi
 
 #Download and expand source files
-DESTDIR=$BASEDIR/log4cpp/build
+DESTDIR=$BASEDIR/log4cpp-1.1.3/build
 TARFILE=$DESTDIR/log4cpp-1.1.3.tar.gz
 [ -f $TARFILE ]         || wget -c  --directory-prefix=$DESTDIR 'https://sourceforge.net/projects/log4cpp/files/latest/download/log4cpp-1.1.3.tar.gz'
 [ -d $DESTDIR/log4cpp ] || tar xzf $TARFILE -C $DESTDIR
