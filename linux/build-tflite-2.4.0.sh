@@ -12,7 +12,7 @@ fi
 
 # Download and expand source files
 BASEDIR=$(realpath $BASEDIR)
-SCRIPTSDIR=$(realpath $PWD)
+SCRIPTSDIR=$(realpath $PWD/..)
 TENSORFLOWSRC=$(realpath $BASEDIR/tensorflow_src)
 TFLITEDIR=$BASEDIR/tflite-2.4.0
 

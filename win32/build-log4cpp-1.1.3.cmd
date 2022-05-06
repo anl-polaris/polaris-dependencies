@@ -16,6 +16,8 @@ set a=%a:/=\%
 echo %a%
 set BASEDIR=%a%
 
+set FILEDIR=%~dp0
+
 IF NOT EXIST %BASEDIR% (mkdir %BASEDIR%)
 
 REM  see if Visual Studio is already set
@@ -64,7 +66,7 @@ set BUILD_ERROR=0
 
 set ERRORLEVEL=
 cd /D %BASEDIR%
-%~dp0utils\wget --show-progress=off -O %TARBALL% "https://sourceforge.net/projects/log4cpp/files/latest/download" --no-check-certificate
+%FILEDIR%utils\wget --show-progress=off -O %TARBALL% "https://sourceforge.net/projects/log4cpp/files/latest/download" --no-check-certificate
 tar xzvf %TARBALL%
 IF ERRORLEVEL 1 ( ECHO Download and Extract of '%TARBALL%' - FAIL  & ECHO STTATUS: FAIL & ENDLOCAL & EXIT /B 1 )
 
@@ -82,7 +84,7 @@ IF "%VisualStudioVersion%" == "16.0" (
 	cmake --build . -j --config RelWithDebInfo
 )
 
-cd /D %~dp0
+cd /D %FILEDIR%
 call DisplayDate.cmd
 IF %BUILD_ERROR% NEQ 0 (ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1)
 ENDLOCAL

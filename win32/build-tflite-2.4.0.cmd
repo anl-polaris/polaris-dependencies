@@ -16,6 +16,8 @@ set a=%a:\=\%
 echo %a%
 set BASEDIR=%a%
 
+set FILEDIR=%~dp0
+
 IF NOT EXIST %BASEDIR% (mkdir %BASEDIR%)
 
 :: Download and expand source files
