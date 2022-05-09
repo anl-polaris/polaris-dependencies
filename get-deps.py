@@ -147,22 +147,22 @@ def copy_files():
     if not os.path.exists(f"{deps_directory}/bin/Debug/"):
         os.makedirs(f"{deps_directory}/bin/Debug/")
         
-    if os.path.isfile(f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll"):
+    if os.path.exists(f"{deps_directory}/odb-2.5.0-release/bin/") and os.path.exists(f"{status_directory}/odb-2.5.0-success"):
+        shutil.copytree(f"{deps_directory}/odb-2.5.0-release/bin/", f"{deps_directory}/bin/Release/", dirs_exist_ok=True)
+        shutil.copytree(f"{deps_directory}/odb-2.5.0-release/bin/", f"{deps_directory}/bin/RelWithDebug/", dirs_exist_ok=True)
+        
+    if os.path.exists(f"{deps_directory}/odb-2.5.0-debug/bin/") and os.path.exists(f"{status_directory}/odb-2.5.0-success"):
+        shutil.copytree(f"{deps_directory}/odb-2.5.0-debug/bin/", f"{deps_directory}/bin/Debug/", dirs_exist_ok=True)
+        
+    if os.path.isfile(f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll") and os.path.exists(f"{status_directory}/glpk-4.65-success"):
         shutil.copy(f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll", f"{deps_directory}/bin/Release/glpk_4_65.dll")
         shutil.copy(f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll", f"{deps_directory}/bin/RelWithDebug/glpk_4_65.dll")
         shutil.copy(f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll", f"{deps_directory}/bin/Debug/glpk_4_65.dll")
         
-    if os.path.exists(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/"):
+    if os.path.exists(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/") and os.path.exists(f"{status_directory}/tflite-2.4.0-success"):
         shutil.copytree(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/", f"{deps_directory}/bin/Release/", dirs_exist_ok=True)
         shutil.copytree(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/", f"{deps_directory}/bin/RelWithDebug/", dirs_exist_ok=True)
         shutil.copytree(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/", f"{deps_directory}/bin/Debug/", dirs_exist_ok=True)
-        
-    if os.path.exists(f"{deps_directory}/odb-2.5.0-release/bin/"):
-        shutil.copytree(f"{deps_directory}/odb-2.5.0-release/bin/", f"{deps_directory}/bin/Release/", dirs_exist_ok=True)
-        shutil.copytree(f"{deps_directory}/odb-2.5.0-release/bin/", f"{deps_directory}/bin/RelWithDebug/", dirs_exist_ok=True)
-        
-    if os.path.exists(f"{deps_directory}/odb-2.5.0-debug/bin/"):
-        shutil.copytree(f"{deps_directory}/odb-2.5.0-debug/bin/", f"{deps_directory}/bin/Debug/", dirs_exist_ok=True)
     
 
 def summarise():

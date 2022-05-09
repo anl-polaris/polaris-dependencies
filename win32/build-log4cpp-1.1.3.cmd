@@ -7,7 +7,7 @@ IF NOT "%1" == "" (
 ) ELSE IF NOT "%POLARIS_DEPS_DIR%" == "" (
 	  set BASEDIR=%POLARIS_DEPS_DIR%
 ) ELSE (
-	set BASEDIR=c:\opt\polaris\deps\
+	set BASEDIR=c:\opt\polaris\deps
 )
 
 :: get our slashes all straightened out :)
@@ -54,7 +54,7 @@ IF NOT "%VCROOT%" == "" (
 
 :: Download and expand source files
 set TARBALL=%BASEDIR%\log4cpp-1.1.3.tar.gz
-set DESTDIR=%BASEDIR%\log4cpp-1.1.3
+set DESTDIR=%BASEDIR%\log4cpp
 set BUILDDIR=%DESTDIR%\CMAKE_BUILD
 
 echo file=%TARBALL%
