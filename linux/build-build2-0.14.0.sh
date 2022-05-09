@@ -12,8 +12,14 @@ fi
 
 CXX=g++
 
-CURRENT_DIR=$PWD
 BUILD_DIR=$(realpath $BASEDIR/build2-build)
+
+if [ -e $BASEDIR/build2/bin/bpkg ] 
+then
+	echo bpkg already built, skipping
+	exit 0
+fi
+
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
 

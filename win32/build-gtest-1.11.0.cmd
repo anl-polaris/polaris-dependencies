@@ -18,6 +18,8 @@ set a=%a:/=\%
 echo %a%
 set BASEDIR=%a%
 
+set FILEDIR=%~dp0..\
+
 REM  see if Vsual Studio is already set
 SET VCROOT=
 IF "%VSINSTALLDIR%" == "" (
@@ -44,7 +46,7 @@ IF "%VisualStudioVersion%" == "16.0" (
 
 :: Download and expand source files
 set GTESTZIPFILE=%BASEDIR%\release-1.11.0.zip
-set GTESTDIR=%BASEDIR%\googletest-release-1.1.0
+set GTESTDIR=%BASEDIR%\googletest-release-1.11.0
 
 echo file=%GTESTZIPFILE%
 echo dir=%GTESTDIR%
@@ -52,8 +54,8 @@ echo dir=%GTESTDIR%
 set ERRORLEVEL=
 IF NOT EXIST %GTESTDIR% ( mkdir %GTESTDIR% )
 cd /D %BASEDIR%
-%~dp0utils\wget --show-progress=off -O %GTESTZIPFILE% "https://github.com/google/googletest/archive/refs/tags/release-1.11.0.zip"
-%~dp0utils\unzip -o -q %GTESTZIPFILE%
+%FILEDIR%utils\wget --show-progress=off -O %GTESTZIPFILE% "https://github.com/google/googletest/archive/refs/tags/release-1.11.0.zip"
+%FILEDIR%utils\unzip -o -q %GTESTZIPFILE%
 IF ERRORLEVEL 1 (ECHO Download and Extract of '%GTESTZIPFILE%' failed. & ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1)
 
 set BUILDDIR=%GTESTDIR%\build_msvc2015
@@ -81,7 +83,7 @@ IF "%VisualStudioVersion%" == "16.0" (
 IF %RELEASE_BUILD% NEQ 0 (ECHO MSBuild of gtest 1.11.0 Release project - FAIL )
 IF %DEBUG_BUILD% NEQ 0  (ECHO MSBuild of gtest 1.11.0 Debug project - FAIL )
 
-cd /D %~dp0
+cd /D %FILEDIR%
 call DisplayDate.cmd
 IF %BUILD_ERROR% NEQ 0 (ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1)
 ENDLOCAL

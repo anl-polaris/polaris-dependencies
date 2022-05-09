@@ -3,8 +3,10 @@
 set -eu
 
 # ODB can only be built with gcc, not clang compatible
+filedir=$(dirname "$0")
+
 CXX=g++
-gcc_ver=$(./gcc_ver.sh $CXX)
+gcc_ver=$($filedir/../gcc_ver.sh $CXX)
 
 mkdir -p $gcc_ver-compiler
 

@@ -29,7 +29,7 @@ GTEST_STATUS=0
 
 LOG4_LOG=$LOGDIR/log4cpp_build.log
 rm -f $BOOST_LOG
-./build-log4cpp-1.1.3.sh $DEPSDIR > $LOG4_LOG 2>&1
+./linux/build-log4cpp-1.1.3.sh $DEPSDIR > $LOG4_LOG 2>&1
 if [ $? -ne 0 ]
 then
   echo "Build of log4cpp 1.1.3  - FAIL"
@@ -41,7 +41,7 @@ fi
 
 BOOST_LOG=$LOGDIR/boost_build.log
 rm -f $BOOST_LOG
-./build-boost-1.71.0.sh $DEPSDIR > $BOOST_LOG 2>&1
+./linux/build-boost-1.71.0.sh $DEPSDIR > $BOOST_LOG 2>&1
 if [ $? -ne 0 ]
 then
   echo "Build of Boost 1.71.0  - FAIL"
@@ -53,7 +53,7 @@ fi
 
 RAPIDJSON_LOG=$LOGDIR/rapidjson_build.log
 rm -f $RAPIDJSON_LOG
-./build-rapidjson-1.1.0.sh $DEPSDIR &> $RAPIDJSON_LOG
+./linux/build-rapidjson-1.1.0.sh $DEPSDIR &> $RAPIDJSON_LOG
 if [ $? -ne 0 ]
 then
   echo "Build of rapidjson 1.1.0  - FAIL"
@@ -65,7 +65,7 @@ fi
 
 BUILD2_LOG=$LOGDIR/build2_build.log
 rm -f $BUILD2_LOG
-./build-build2.sh $DEPSDIR &> $BUILD2_LOG
+./linux/build-build2.sh $DEPSDIR &> $BUILD2_LOG
 if [ ${PIPESTATUS[0]} -ne 0 ]
 then
   echo "Build of build2  - FAIL"
@@ -78,7 +78,7 @@ export PATH=$PATH:$DEPSDIR/build2/bin
 
 ODB_COMPILER_LOG=$LOGDIR/build_odb_compiler.log
 rm -f $ODB_COMPILER_LOG
-./build-odb-compiler-bebop.sh $DEPSDIR &> $ODB_COMPILER_LOG
+./linux/build-odb-compiler-bebop.sh $DEPSDIR &> $ODB_COMPILER_LOG
 if [ ${PIPESTATUS[0]} -ne 0 ]
 then
   echo "Build of odb 2.5.0 compiler  - FAIL"
@@ -90,7 +90,7 @@ fi
 
 ODB_DEBUG_LOG=$LOGDIR/build_odb_debug.log
 rm -f $ODB_DEBUG_LOG
-./build-odb-debug.sh $DEPSDIR &> $ODB_DEBUG_LOG
+./linux/build-odb-debug.sh $DEPSDIR &> $ODB_DEBUG_LOG
 if [ ${PIPESTATUS[0]} -ne 0 ]
 then
   echo "Build of odb 2.5.0 debug  - FAIL"
@@ -102,7 +102,7 @@ fi
 
 ODB_RELEASE_LOG=$LOGDIR/build_odb_release.log
 rm -f $ODB_RELEASE_LOG
-./build-odb-release.sh $DEPSDIR &> $ODB_RELEASE_LOG
+./linux/build-odb-release.sh $DEPSDIR &> $ODB_RELEASE_LOG
 if [ ${PIPESTATUS[0]} -ne 0 ]
 then
   echo "Build of odb 2.5.0 release  - FAIL"
@@ -115,7 +115,7 @@ fi
 
 GTEST_LOG=$LOGDIR/gtest_build.log
 rm -f $GTEST_LOG
-./build-gtest-1.7.0.sh $DEPSDIR &> $GTEST_LOG
+./linux/build-gtest-1.7.0.sh $DEPSDIR &> $GTEST_LOG
 if [ $? -ne 0 ]
 then
   echo "Build of gtest 1.7.0  - FAIL"

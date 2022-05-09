@@ -106,20 +106,20 @@ def build_dep(dep, version):
     if verbose == 0:
         f=open(log_file, "w")
         if operatingSystem == "linux":
-            output=subprocess.run([f"{working_directory}/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"], 
+            output=subprocess.run([f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"], 
                 stdout=f, stderr=subprocess.STDOUT)
         else:
-            command = [f"{working_directory}\\build-{dep}-{version}.cmd", f"{deps_directory}"]
+            command = [f"{working_directory}\\win32\\build-{dep}-{version}.cmd", f"{deps_directory}"]
             output=subprocess.run(command, shell=True, stdout=f, stderr=subprocess.STDOUT)
         status=output.returncode
         f.close()
     else:
         f=open(log_file, "w")
         if operatingSystem == "linux":
-            output=subprocess.run([f"{working_directory}/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"], 
+            output=subprocess.run([f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"], 
                 shell=True, stdout=f, stderr=subprocess.STDOUT)
         else:
-            command = [f"{working_directory}\\build-{dep}-{version}.cmd", f"{deps_directory}"]
+            command = [f"{working_directory}\\win32\\build-{dep}-{version}.cmd", f"{deps_directory}"]
             output=subprocess.run(command, shell=True, stdout=f, stderr=subprocess.STDOUT)
         status=output.returncode
         f.close()

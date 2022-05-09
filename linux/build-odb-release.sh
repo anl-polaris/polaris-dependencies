@@ -1,7 +1,12 @@
 #!/bin/bash
+
+set -eu
+
 CXX=g++
 
-gcc_ver=$(./gcc_ver.sh $CXX)
+filedir=$(dirname "$0")
+
+gcc_ver=$($filedir/../gcc_ver.sh $CXX)
 echo $gcc_ver
 
 install_root=$1

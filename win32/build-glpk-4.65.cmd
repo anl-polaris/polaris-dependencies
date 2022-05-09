@@ -16,6 +16,8 @@ set a=%a:/=\%
 echo %a%
 set BASEDIR=%a%
 
+set FILEDIR=%~dp0..\
+
 IF NOT EXIST %BASEDIR% (mkdir %BASEDIR%)
 
 :: Download and expand source files
@@ -32,7 +34,7 @@ set BUILD_ERROR=0
 IF NOT EXIST %GLPKTARFILE% (
 	set ERRORLEVEL=
 	cd /D %BASEDIR%
-	%~dp0utils\wget --show-progress=off -O %GLPKTARFILE% http://ftp.gnu.org/gnu/glpk/glpk-4.65.tar.gz
+	%FILEDIR%utils\wget --show-progress=off -O %GLPKTARFILE% http://ftp.gnu.org/gnu/glpk/glpk-4.65.tar.gz
 	IF ERRORLEVEL 1 ( ECHO Download of '%GLPKTARFILE%' - FAIL  & ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1 )
 ) ELSE (
 	ECHO GLPK file already exists
@@ -40,7 +42,7 @@ IF NOT EXIST %GLPKTARFILE% (
 
 
 IF NOT EXIST %GLPKDIR% (
-	%~dp0utils\7-Zip\7z x %GLPKTARFILE% -so | %~dp0utils\7-Zip\7z x -si -ttar -o%BASEDIR%
+	%FILEDIR%utils\7-Zip\7z x %GLPKTARFILE% -so | %FILEDIR%utils\7-Zip\7z x -si -ttar -o%BASEDIR%
 	cd %GLPKDIR%\w64\
 	@echo | call Build_GLPK_with_VC14_DLL
 	IF ERRORLEVEL 1 ( ECHO Extraction of '%GLPKTARFILE%' - FAIL  & ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1 )
@@ -48,5 +50,5 @@ IF NOT EXIST %GLPKDIR% (
 	ECHO GLPK directory already exists
 )
 
-cd %dp0%
+cd %FILEDIR%
 
