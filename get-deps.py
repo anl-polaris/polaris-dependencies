@@ -155,11 +155,11 @@ def copy_files():
         # TFLite has some weird permissions issue, adding checks to avoid issues...
         if os.path.exists(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/") and os.path.exists(f"{status_directory}/tflite-2.4.0-success"):
             if not os.path.exists(f"{folder}/tensorflowlite.dll"):
-                shutil.copy(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/tensorflowlite.dll", f"{folder}/tensorflowlite.dll", dirs_exist_ok=True)
+                shutil.copy(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/tensorflowlite.dll", f"{folder}/tensorflowlite.dll")
             if not os.path.exists(f"{folder}/tensorflowlite.dll.if.lib"):
-                shutil.copy(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/tensorflowlite.dll.if.lib", f"{folder}/tensorflowlite.dll.if.lib", dirs_exist_ok=True)
+                shutil.copy(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/tensorflowlite.dll.if.lib", f"{folder}/tensorflowlite.dll.if.lib")
             if not os.path.exists(f"{folder}/tensorflowlite.pdb"):
-                shutil.copy(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/tensorflowlite.pdb", f"{folder}/tensorflowlite.pdb", dirs_exist_ok=True)
+                shutil.copy(f"{deps_directory}/tflite-2.4.0/tensorflow/lite/tensorflowlite.pdb", f"{folder}/tensorflowlite.pdb")
     
 
 def summarise():
