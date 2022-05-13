@@ -58,7 +58,7 @@ cd /D %BASEDIR%
 %FILEDIR%utils\unzip -o -q %GTESTZIPFILE%
 IF ERRORLEVEL 1 (ECHO Download and Extract of '%GTESTZIPFILE%' failed. & ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1)
 
-set BUILDDIR=%GTESTDIR%\build_msvc2015
+set BUILDDIR=%GTESTDIR%\build
 mkdir %BUILDDIR%
 cd /D %BUILDDIR%
 
