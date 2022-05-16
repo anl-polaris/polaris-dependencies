@@ -45,16 +45,11 @@ IF "%VisualStudioVersion%" == "16.0" (
 		exit /B 1
 	)
 )
-
-IF NOT "%VCROOT%" == "" (
-	echo "calling vcvarsall"
-    call "%VCROOT%\vcvarsall.bat" amd64
-)
 :: PAUSE
 
 :: Download and expand source files
 set TARBALL=%BASEDIR%\log4cpp-1.1.3.tar.gz
-set DESTDIR=%BASEDIR%\log4cpp-1.1.3
+set DESTDIR=%BASEDIR%\log4cpp
 set BUILDDIR=%DESTDIR%\CMAKE_BUILD
 
 echo file=%TARBALL%
