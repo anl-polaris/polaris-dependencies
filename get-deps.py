@@ -111,8 +111,8 @@ def build_dep(dep, version):
 
     shell = False if verbose == 0 and operatingSystem == "linux" else True
 
-    with open(log_file, "w") as f:
-        output=subprocess.run(command, shell=shell, stdout=f, stderr=subprocess.STDOUT)
+    # with open(log_file, "w") as f:
+    output=subprocess.run(command, shell=False, stdout=f, stderr=subprocess.STDOUT)
     status=output.returncode
 
     if status != 0:
