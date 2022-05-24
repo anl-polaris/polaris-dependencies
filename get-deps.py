@@ -117,10 +117,10 @@ def build_dep(dep, version):
 
     if status != 0:
         print(f"Build of {dep} {version}  - FAIL")
-        touch(f"{status_directory}/{dep}-{version}-fail"):
+        touch(f"{status_directory}/{dep}-{version}-fail")
     else:
         print(f"Build of {dep} {version}  - SUCCESS")
-        rm(f"{status_directory}/{dep}-{version}-fail"):
+        rm(f"{status_directory}/{dep}-{version}-fail")
         touch(f"{status_directory}/{dep}-{version}-success")
 
 def rm(x):
