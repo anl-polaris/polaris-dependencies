@@ -1,5 +1,6 @@
 import sys, os, subprocess, pathlib, shutil, getopt
 from compiler_version import get_linux_compiler, get_windows_compiler
+from os.path import join, dirname
 
 # python ./get-deps.py -c {compiler} -d {depsdir}
 # python ./get-deps.py -d {depsdir} -c {compiler} 
@@ -8,13 +9,14 @@ from compiler_version import get_linux_compiler, get_windows_compiler
 def main():
     setup_variables()
     build_dep("build2", "0.14.0")
-    # build_dep("log4cpp", "1.1.3")
-    # build_dep("tflite", "2.4.0")
-    # build_dep("glpk", "4.65")
-    # build_dep("boost", "1.71.0")
-    # build_dep("rapidjson", "1.1.0")    
-    # build_dep("odb", "2.5.0")
-    # build_dep("gtest", "1.11.0")
+    add_build2_to_path()
+    build_dep("log4cpp", "1.1.3")
+    build_dep("tflite", "2.4.0")
+    build_dep("glpk", "4.65")
+    build_dep("boost", "1.71.0")
+    build_dep("rapidjson", "1.1.0")    
+    build_dep("odb", "2.5.0")
+    build_dep("gtest", "1.11.0")
     
     if operatingSystem == "win32":
         copy_files()
@@ -91,6 +93,11 @@ def setup_variables():
     
     for i in [deps_directory, logs_directory, status_directory]:
         mkdir_p(i)
+
+def add_build2_to_path():
+    build2_bin_dir = join(deps_directory, "build2", "bin")	
+    if build2_bin_dir not in os.environ['PATH']:
+        os.environ['PATH'] = build2_bin_dir + os.pathsep + os.environ['PATH']
 
 def build_dep(dep, version):
     log_file=os.path.normpath(logs_directory+f"/{dep}_{version}_build.log")

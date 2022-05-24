@@ -5,7 +5,7 @@ set -eu
 filedir=$(dirname "$0")
 
 CXX=g++
-gcc_ver=$($filedir/../gcc_ver.sh $CXX)
+gcc_ver=$(sh $filedir/../gcc_ver.sh $CXX)
 echo $gcc_ver
 
 install_root=$1
