@@ -2,10 +2,6 @@
 
 set -eu
 
-echo "------------"
-echo $0
-echo "$@"
-echo "------------"
 if [[ $1 != '' ]];then
   BASEDIR=$1
 elif [[ $POLARIS_DEPS_DIR != '' ]]; then
