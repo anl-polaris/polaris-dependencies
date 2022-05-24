@@ -89,12 +89,8 @@ def setup_variables():
 
     print(f"Building in: {deps_directory}")
     
-    if not os.path.exists(deps_directory):
-        pathlib.Path(deps_directory).mkdir(parents=True, exist_ok=True)
-    if not os.path.exists(logs_directory):
-        os.mkdir(logs_directory)
-    if not os.path.exists(status_directory):
-        os.mkdir(status_directory)
+    for i in [deps_directory, logs_directory, status_directory]:
+        mkdir_p(i)
 
 def build_dep(dep, version):
     log_file=os.path.normpath(logs_directory+f"/{dep}_{version}_build.log")
@@ -105,17 +101,20 @@ def build_dep(dep, version):
     # Should call cmd scripts on Windows
     print(f"Building {dep}-{version}, log: {log_file}")
     if operatingSystem == "linux": 
-        command = [f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}", ">", log_file]
+        command = [f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"]
     else:
         command = [f"{working_directory}\\win32\\build-{dep}-{version}.cmd", f"{deps_directory}"]
 
-    shell = False if verbose == 0 and operatingSystem == "linux" else True
-
-    # with open(log_file, "w") as f:
-    output=subprocess.run(command)
-    status=output.returncode
-
-    if status != 0:
+    with open(log_file, 'w', buffering=1) as f:
+        # This can be done more elegantly by just passing f to stdout= in the Popen call
+        # but this causes some strange behaviour on bebop, so we do it manually
+        ps = subprocess.Popen(command, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        while (True):
+            line = ps.stdout.readline().decode()
+            if (line == ""): break
+            f.write(line)
+   
+    if ps.returncode != 0:
         print(f"Build of {dep} {version}  - FAIL")
         touch(f"{status_directory}/{dep}-{version}-fail")
     else:
@@ -129,13 +128,14 @@ def rm(x):
 def touch(x):
     open(x, 'a').close()
 
+def mkdir_p(x):
+    pathlib.Path(x).mkdir(parents=True, exist_ok=True)
+
 def copy_files():
-    if not os.path.exists(f"{deps_directory}/bin/"):
-        os.makedirs(f"{deps_directory}/bin/")        
-    bin_folders=[f"{deps_directory}/bin/Release/", f"{deps_directory}/bin/RelWithDebug/", f"{deps_directory}/bin/Debug/"]
-    for folder in bin_folders:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+    for f in ["Release", "RelWithDebug", "Debug"]:
+        folder = join(deps_directory, 'bin', f)
+        mkdir_p(folder)
+
         # Split up odb by Rel or Debug
         if "Rel" in folder:
             if os.path.exists(f"{deps_directory}/odb-2.5.0-release/bin/") and os.path.exists(f"{status_directory}/odb-2.5.0-success"):
@@ -144,6 +144,7 @@ def copy_files():
         else:
             if os.path.exists(f"{deps_directory}/odb-2.5.0-debug/bin/") and os.path.exists(f"{status_directory}/odb-2.5.0-success"):
                 shutil.copytree(f"{deps_directory}/odb-2.5.0-debug/bin/", f"{deps_directory}/bin/Debug/", dirs_exist_ok=True)           
+
         # Copy glpk and tflite regardless of version
         if os.path.isfile(f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll") and os.path.exists(f"{status_directory}/glpk-4.65-success"):
             shutil.copy(f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll", f"{folder}/glpk_4_65.dll")    
@@ -163,14 +164,8 @@ def summarise():
     print("--------------------------\n")
     print(f"Checking status files from {status_directory}")
     for filename in os.listdir(status_directory):
-        name_list=filename.split('-')
-        lib=name_list[0]
-        version=name_list[1]
-        status=name_list[2]
-        if status == "success":
-          symbol="✔"
-        else:
-          symbol="✘"
+        lib, version, status = filename.split('-')
+        symbol="✔" if status == "success" else "✘"
         print(f"{symbol}  {lib} {version} {status}")
 
 if __name__ == "__main__":
