@@ -105,7 +105,7 @@ def build_dep(dep, version):
     # Should call cmd scripts on Windows
     print(f"Building {dep}-{version}, log: {log_file}")
     if operatingSystem == "linux": 
-        command = [f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"]
+        command = [f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}", ">", log_file]
     else:
         command = [f"{working_directory}\\win32\\build-{dep}-{version}.cmd", f"{deps_directory}"]
 
