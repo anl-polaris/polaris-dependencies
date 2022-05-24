@@ -110,10 +110,13 @@ def build_dep(dep, version):
         # but this causes some strange behaviour on bebop, so we do it manually
         ps = subprocess.Popen(command, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         while (True):
-            line = ps.stdout.readline().decode()
+            line = ps.stdout.readline().decode().strip()
             if (line == ""): break
             f.write(line)
+            if verbose:
+                 print(line)
    
+    ps.wait()
     if ps.returncode != 0:
         print(f"Build of {dep} {version}  - FAIL")
         touch(f"{status_directory}/{dep}-{version}-fail")
