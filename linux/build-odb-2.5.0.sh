@@ -11,8 +11,7 @@ else
 fi
 
 cd $(dirname "$0")
-pwd
 
-# ./build-odb-compiler.sh $DEPSDIR
+./build-odb-compiler.sh $DEPSDIR
 ./build-odb-debug.sh $DEPSDIR
 ./build-odb-release.sh $DEPSDIR
