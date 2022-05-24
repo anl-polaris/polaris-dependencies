@@ -29,8 +29,8 @@ curl -sSfO https://download.build2.org/0.14.0/build2-install-0.14.0.sh
 echo ${install_script_sum} | sha256sum -c
 
 
-#sh build2-install-0.14.0.sh -j 8 \
-#                            --cxx $CXX \
-#                            --yes \
-#                            --trust ${cpp_get_shasum} \
-#                            $BASEDIR/build2
+sh build2-install-0.14.0.sh -j 8 \
+                            --cxx $CXX \
+                            --yes \
+                            --trust ${cpp_get_shasum} \
+                            $BASEDIR/build2

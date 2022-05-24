@@ -104,37 +104,30 @@ def build_dep(dep, version):
 
     # Should call cmd scripts on Windows
     print(f"Building {dep}-{version}, log: {log_file}")
-    if verbose == 0:
-        f=open(log_file, "w")
-        if operatingSystem == "linux":
-            output=subprocess.run([f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"], 
-                stdout=f, stderr=subprocess.STDOUT)
-        else:
-            command = [f"{working_directory}\\win32\\build-{dep}-{version}.cmd", f"{deps_directory}"]
-            output=subprocess.run(command, shell=True, stdout=f, stderr=subprocess.STDOUT)
-        status=output.returncode
-        f.close()
+    if operatingSystem == "linux": 
+        command = [f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"]
     else:
-        f=open(log_file, "w")
-        if operatingSystem == "linux":
-            output=subprocess.run([f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"], 
-                shell=True, stdout=f, stderr=subprocess.STDOUT)
-        else:
-            command = [f"{working_directory}\\win32\\build-{dep}-{version}.cmd", f"{deps_directory}"]
-            output=subprocess.run(command, shell=True, stdout=f, stderr=subprocess.STDOUT)
-        status=output.returncode
-        f.close()
+        command = [f"{working_directory}\\win32\\build-{dep}-{version}.cmd", f"{deps_directory}"]
+
+    shell = False if verbose == 0 and operatingSystem == "linux" else True
+
+    with open(log_file, "w") as f:
+        output=subprocess.run(command, shell=shell, stdout=f, stderr=subprocess.STDOUT)
+    status=output.returncode
 
     if status != 0:
         print(f"Build of {dep} {version}  - FAIL")
-        fp = open(f"{status_directory}/{dep}-{version}-fail", 'w')
-        fp.close()
+        touch(f"{status_directory}/{dep}-{version}-fail"):
     else:
         print(f"Build of {dep} {version}  - SUCCESS")
-        if os.path.exists(f"{status_directory}/{dep}-{version}-fail"):
-            os.remove(f"{status_directory}/{dep}-{version}-fail")
-        fp = open(f"{status_directory}/{dep}-{version}-success", 'w')
-        fp.close()
+        rm(f"{status_directory}/{dep}-{version}-fail"):
+        touch(f"{status_directory}/{dep}-{version}-success")
+
+def rm(x):
+    os.path.exists(x) and os.remove(x)
+
+def touch(x):
+    open(x, 'a').close()
 
 def copy_files():
     if not os.path.exists(f"{deps_directory}/bin/"):
