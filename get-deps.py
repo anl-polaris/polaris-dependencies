@@ -7,13 +7,14 @@ from compiler_version import get_linux_compiler, get_windows_compiler
 
 def main():
     setup_variables()
-    build_dep("log4cpp", "1.1.3")
-    build_dep("tflite", "2.4.0")
-    build_dep("glpk", "4.65")
-    build_dep("boost", "1.71.0")
-    build_dep("rapidjson", "1.1.0")    
-    build_dep("odb", "2.5.0")
-    build_dep("gtest", "1.11.0")
+    build_dep("build2", "0.14.0")
+    # build_dep("log4cpp", "1.1.3")
+    # build_dep("tflite", "2.4.0")
+    # build_dep("glpk", "4.65")
+    # build_dep("boost", "1.71.0")
+    # build_dep("rapidjson", "1.1.0")    
+    # build_dep("odb", "2.5.0")
+    # build_dep("gtest", "1.11.0")
     
     if operatingSystem == "win32":
         copy_files()
@@ -28,7 +29,7 @@ def setup_variables():
     elif sys.platform == "win32":
         operatingSystem = "win32"
     elif sys.platform == "darwin":
-        print(f"POLARIS does not support MacOS")
+        print(f"POLARIS does not support {sys.platform}")
         quit()
     else:
         print(f"Platform {sys.platform} not supported")
@@ -102,7 +103,7 @@ def build_dep(dep, version):
         return
 
     # Should call cmd scripts on Windows
-    print(f"Building {dep}-{version}")
+    print(f"Building {dep}-{version}, log: {log_file}")
     if verbose == 0:
         f=open(log_file, "w")
         if operatingSystem == "linux":
@@ -123,6 +124,7 @@ def build_dep(dep, version):
             output=subprocess.run(command, shell=True, stdout=f, stderr=subprocess.STDOUT)
         status=output.returncode
         f.close()
+
     if status != 0:
         print(f"Build of {dep} {version}  - FAIL")
         fp = open(f"{status_directory}/{dep}-{version}-fail", 'w')
