@@ -13,10 +13,15 @@ def chdir(path):
     finally:
         os.chdir(prev_cwd)
 
-def main():
-    deps_dir = abspath(sys.argv[1])
-    version = sys.argv[2]
-    thing = sys.argv[3]
+def build_odb(deps_dir, version):
+     #deps_dir = abspath(sys.argv[1])
+     #version = sys.argv[2]
+     #thing = sys.argv[3]
+    build_odb_thing(deps_dir, version, "compiler")
+    build_odb_thing(deps_dir, version, "debug")
+    build_odb_thing(deps_dir, version, "release")
+
+def build_odb_thing(deps_dir, version, thing):
     build_dir = create_bpkg_build_dir(deps_dir, version, thing)
     with chdir(build_dir):
         if thing == "compiler":
@@ -36,7 +41,7 @@ def main():
     
 
 def create_bpkg_build_dir(deps_dir, version, thing):
-    os.environ['PATH'] = "/home/jamie/git/polaris-dependencies/tmp/gcc-9.4.0/build2-build/tmp/gcc-9.4.0/build2/bin" + os.pathsep + os.environ['PATH']
+    # os.environ['PATH'] = "/home/jamie/git/polaris-dependencies/tmp/gcc-9.4.0/build2-build/tmp/gcc-9.4.0/build2/bin" + os.pathsep + os.environ['PATH']
 
     install_dir = join(deps_dir, f"odb-{version}-{thing}")
     build_dir = join(deps_dir, f"build-odb-{version}-{thing}")
@@ -101,5 +106,5 @@ def mkdir_p(x):
 
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

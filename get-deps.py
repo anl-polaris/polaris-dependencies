@@ -1,6 +1,8 @@
 import sys, os, subprocess, pathlib, shutil, getopt
 from compiler_version import get_linux_compiler, get_windows_compiler
-from os.path import join, dirname
+from os.path import join, dirname, abspath
+sys.path.append(abspath("."))
+from linux.build_odb_thing import build_odb
 
 # python ./get-deps.py -c {compiler} -d {depsdir}
 # python ./get-deps.py -d {depsdir} -c {compiler} 
@@ -15,7 +17,7 @@ def main():
     build_dep("glpk", "4.65")
     build_dep("boost", "1.71.0")
     build_dep("rapidjson", "1.1.0")    
-    build_dep("odb", "2.5.0")
+    build_odb_(deps_directory, "2.5.0")
     build_dep("gtest", "1.11.0")
     
     if operatingSystem == "win32":
@@ -95,9 +97,24 @@ def setup_variables():
         mkdir_p(i)
 
 def add_build2_to_path():
-    build2_bin_dir = join(deps_directory, "build2", "bin")	
+    build2_bin_dir = abspath(join(deps_directory, "build2", "bin"))
     if build2_bin_dir not in os.environ['PATH']:
         os.environ['PATH'] = build2_bin_dir + os.pathsep + os.environ['PATH']
+
+    build2_lib_dir = abspath(join(deps_directory, "build2", "lib"))
+    if 'LD_LIBRARY_PATH' not in os.environ:
+        os.environ['LD_LIBRARY_PATH'] = build2_lib_dir 
+    elif build2_lib_dir not in os.environ['LD_LIBRARY_PATH']:
+        os.environ['LD_LIBRARY_PATH'] = build2_lib_dir + os.pathsep + os.environ['LD_LIBRARY_PATH']
+
+def build_odb_(deps_directory, version):
+    try: 
+        build_odb(deps_directory, version)
+        mark_as(status_directory, "odb", version, "success") 
+    except:
+        mark_as(status_directory, "odb", version, "fail") 
+
+
 
 def build_dep(dep, version):
     log_file=os.path.normpath(logs_directory+f"/{dep}_{version}_build.log")
@@ -124,13 +141,14 @@ def build_dep(dep, version):
                  print(line.strip())
    
     ps.wait()
-    if ps.returncode != 0:
-        print(f"Build of {dep} {version}  - FAIL")
-        touch(f"{status_directory}/{dep}-{version}-fail")
-    else:
-        print(f"Build of {dep} {version}  - SUCCESS")
-        rm(f"{status_directory}/{dep}-{version}-fail")
-        touch(f"{status_directory}/{dep}-{version}-success")
+    status = "success" if ps.returncode == 0 else "fail"
+    mark_as(status_directory, dep, version, status) 
+
+
+def mark_as(status_directory, dep, version, status):
+    print(f"Build of {dep} {version}  - {status.upper()}")
+    [rm(f"{status_directory}/{dep}-{version}-{i}") for i in ['fail', 'success']]
+    touch(f"{status_directory}/{dep}-{version}-{status}")
 
 def rm(x):
     os.path.exists(x) and os.remove(x)
