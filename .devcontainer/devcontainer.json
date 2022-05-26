@@ -1,0 +1,33 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.234.0/containers/cpp
+{
+	"name": "PolarisDepsDevContainer",
+	"build": {
+		"dockerfile": "Dockerfile",
+		// Update 'VERSION' to pick an alternate gcc version / Debian base
+		// Full list is here: https://hub.docker.com/_/gcc
+		// Common ones are version-{buster,bullseye} (10.3-buster, 11.3-bullseye, etc)
+		"args": {
+			"VERSION": "10.3.0-buster",
+			"REINSTALL_CMAKE_VERSION_FROM_SOURCE": "3.23.1"
+		}
+	},
+	"runArgs": [
+		"--cap-add=SYS_PTRACE",
+		"--security-opt",
+		"seccomp=unconfined"
+	],
+	// Set *default* container specific settings.json values on container create.
+	"settings": {},
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"ms-vscode.cpptools",
+		"ms-vscode.cmake-tools"
+	],
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "apt update"
+	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	// "remoteUser": "vscode"
+}

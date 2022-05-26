@@ -3,10 +3,9 @@
 set -eu
 
 CXX=g++
-
 filedir=$(dirname "$0")
 
-gcc_ver=$($filedir/../gcc_ver.sh $CXX)
+gcc_ver=$(sh $filedir/../gcc_ver.sh $CXX)
 echo $gcc_ver
 
 install_root=$1
@@ -16,6 +15,7 @@ build_folder=build-odb-2.5.0-$gcc_ver-release
 #BPKG_BIN=$install_root/build2/bin/bpkg
 mkdir -p $install_path
 cd $install_root
+
 bpkg create -d $build_folder cc  --wipe \
   config.cxx=$CXX                 	\
   config.cc.coptions=-O3			\

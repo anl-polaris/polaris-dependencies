@@ -1,5 +1,8 @@
 import sys, os, subprocess, pathlib, shutil, getopt
 from compiler_version import get_linux_compiler, get_windows_compiler
+from os.path import join, dirname, abspath
+sys.path.append(abspath("."))
+from linux.build_odb_thing import build_odb
 
 # python ./get-deps.py -c {compiler} -d {depsdir}
 # python ./get-deps.py -d {depsdir} -c {compiler} 
@@ -7,12 +10,14 @@ from compiler_version import get_linux_compiler, get_windows_compiler
 
 def main():
     setup_variables()
+    build_dep("build2", "0.14.0")
+    add_build2_to_path()
     build_dep("log4cpp", "1.1.3")
     build_dep("tflite", "2.4.0")
     build_dep("glpk", "4.65")
     build_dep("boost", "1.71.0")
     build_dep("rapidjson", "1.1.0")    
-    build_dep("odb", "2.5.0")
+    build_odb_(deps_directory, "2.5.0")
     build_dep("gtest", "1.11.0")
     
     if operatingSystem == "win32":
@@ -28,7 +33,7 @@ def setup_variables():
     elif sys.platform == "win32":
         operatingSystem = "win32"
     elif sys.platform == "darwin":
-        print(f"POLARIS does not support MacOS")
+        print(f"POLARIS does not support {sys.platform}")
         quit()
     else:
         print(f"Platform {sys.platform} not supported")
@@ -88,12 +93,30 @@ def setup_variables():
 
     print(f"Building in: {deps_directory}")
     
-    if not os.path.exists(deps_directory):
-        pathlib.Path(deps_directory).mkdir(parents=True, exist_ok=True)
-    if not os.path.exists(logs_directory):
-        os.mkdir(logs_directory)
-    if not os.path.exists(status_directory):
-        os.mkdir(status_directory)
+    for i in [deps_directory, logs_directory, status_directory]:
+        mkdir_p(i)
+
+def add_build2_to_path():
+    build2_bin_dir = abspath(join(deps_directory, "build2", "bin"))
+    if build2_bin_dir not in os.environ['PATH']:
+        os.environ['PATH'] = build2_bin_dir + os.pathsep + os.environ['PATH']
+
+    build2_lib_dir = abspath(join(deps_directory, "build2", "lib"))
+    if 'LD_LIBRARY_PATH' not in os.environ:
+        os.environ['LD_LIBRARY_PATH'] = build2_lib_dir 
+    elif build2_lib_dir not in os.environ['LD_LIBRARY_PATH']:
+        os.environ['LD_LIBRARY_PATH'] = build2_lib_dir + os.pathsep + os.environ['LD_LIBRARY_PATH']
+
+def build_odb_(deps_directory, version):
+    if already_built(status_directory, 'odb', version):
+        return
+    try: 
+        build_odb(deps_directory, version)
+        mark_as(status_directory, "odb", version, "success") 
+    except Exception as e:
+        print("Failed while building odb: ")
+        print(e)
+        mark_as(status_directory, "odb", version, "fail") 
 
 def build_dep(dep, version):
     log_file=os.path.normpath(logs_directory+f"/{dep}_{version}_build.log")
@@ -102,45 +125,50 @@ def build_dep(dep, version):
         return
 
     # Should call cmd scripts on Windows
-    print(f"Building {dep}-{version}")
-    if verbose == 0:
-        f=open(log_file, "w")
-        if operatingSystem == "linux":
-            output=subprocess.run([f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"], 
-                stdout=f, stderr=subprocess.STDOUT)
-        else:
-            command = [f"{working_directory}\\win32\\build-{dep}-{version}.cmd", f"{deps_directory}"]
-            output=subprocess.run(command, shell=True, stdout=f, stderr=subprocess.STDOUT)
-        status=output.returncode
-        f.close()
+    print(f"Building {dep}-{version}, log: {log_file}")
+    if operatingSystem == "linux": 
+        command = [f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"]
     else:
-        f=open(log_file, "w")
-        if operatingSystem == "linux":
-            output=subprocess.run([f"{working_directory}/linux/build-{dep}-{version}.sh", f"{deps_directory}", f"{compiler}"], 
-                shell=True, stdout=f, stderr=subprocess.STDOUT)
-        else:
-            command = [f"{working_directory}\\win32\\build-{dep}-{version}.cmd", f"{deps_directory}"]
-            output=subprocess.run(command, shell=True, stdout=f, stderr=subprocess.STDOUT)
-        status=output.returncode
-        f.close()
-    if status != 0:
-        print(f"Build of {dep} {version}  - FAIL")
-        fp = open(f"{status_directory}/{dep}-{version}-fail", 'w')
-        fp.close()
-    else:
-        print(f"Build of {dep} {version}  - SUCCESS")
-        if os.path.exists(f"{status_directory}/{dep}-{version}-fail"):
-            os.remove(f"{status_directory}/{dep}-{version}-fail")
-        fp = open(f"{status_directory}/{dep}-{version}-success", 'w')
-        fp.close()
+        command = [f"{working_directory}\\win32\\build-{dep}-{version}.cmd", f"{deps_directory}"]
+
+    with open(log_file, 'w', buffering=1) as f:
+        # This can be done more elegantly by just passing f to stdout= in the Popen call
+        # but this causes some strange behaviour on bebop, so we do it manually
+        ps = subprocess.Popen(command, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        while (True):
+            line = ps.stdout.readline().decode()
+            if (line == ""): break
+            f.write(line)
+            if verbose:
+                 print(line.strip())
+   
+    ps.wait()
+    status = "success" if ps.returncode == 0 else "fail"
+    mark_as(status_directory, dep, version, status) 
+
+
+def mark_as(status_directory, dep, version, status):
+    print(f"Build of {dep} {version}  - {status.upper()}")
+    [rm(f"{status_directory}/{dep}-{version}-{i}") for i in ['fail', 'success']]
+    touch(f"{status_directory}/{dep}-{version}-{status}")
+
+def already_built(status_directory, dep, version):
+    return os.path.exists(f"{status_directory}/{dep}-{version}-success")
+
+def rm(x):
+    os.path.exists(x) and os.remove(x)
+
+def touch(x):
+    open(x, 'a').close()
+
+def mkdir_p(x):
+    pathlib.Path(x).mkdir(parents=True, exist_ok=True)
 
 def copy_files():
-    if not os.path.exists(f"{deps_directory}/bin/"):
-        os.makedirs(f"{deps_directory}/bin/")        
-    bin_folders=[f"{deps_directory}/bin/Release/", f"{deps_directory}/bin/RelWithDebug/", f"{deps_directory}/bin/Debug/"]
-    for folder in bin_folders:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+    for f in ["Release", "RelWithDebug", "Debug"]:
+        folder = join(deps_directory, 'bin', f)
+        mkdir_p(folder)
+
         # Split up odb by Rel or Debug
         if "Rel" in folder:
             if os.path.exists(f"{deps_directory}/odb-2.5.0-release/bin/") and os.path.exists(f"{status_directory}/odb-2.5.0-success"):
@@ -149,6 +177,7 @@ def copy_files():
         else:
             if os.path.exists(f"{deps_directory}/odb-2.5.0-debug/bin/") and os.path.exists(f"{status_directory}/odb-2.5.0-success"):
                 shutil.copytree(f"{deps_directory}/odb-2.5.0-debug/bin/", f"{deps_directory}/bin/Debug/", dirs_exist_ok=True)           
+
         # Copy glpk and tflite regardless of version
         if os.path.isfile(f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll") and os.path.exists(f"{status_directory}/glpk-4.65-success"):
             shutil.copy(f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll", f"{folder}/glpk_4_65.dll")    
@@ -168,14 +197,8 @@ def summarise():
     print("--------------------------\n")
     print(f"Checking status files from {status_directory}")
     for filename in os.listdir(status_directory):
-        name_list=filename.split('-')
-        lib=name_list[0]
-        version=name_list[1]
-        status=name_list[2]
-        if status == "success":
-          symbol="✔"
-        else:
-          symbol="✘"
+        lib, version, status = filename.split('-')
+        symbol="✔" if status == "success" else "✘"
         print(f"{symbol}  {lib} {version} {status}")
 
 if __name__ == "__main__":
