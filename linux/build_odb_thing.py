@@ -60,7 +60,6 @@ def create_bpkg_build_dir(deps_dir, version, thing):
 
 
 def run(x):
-    print(f"x = {x}")
     subprocess.run(shlex.split(x))
 
 def mkdir_p(x):

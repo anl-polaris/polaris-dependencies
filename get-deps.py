@@ -108,13 +108,15 @@ def add_build2_to_path():
         os.environ['LD_LIBRARY_PATH'] = build2_lib_dir + os.pathsep + os.environ['LD_LIBRARY_PATH']
 
 def build_odb_(deps_directory, version):
+    if already_built(status_directory, 'odb', version):
+        return
     try: 
         build_odb(deps_directory, version)
         mark_as(status_directory, "odb", version, "success") 
-    except:
+    except Exception as e:
+        print("Failed while building odb: ")
+        print(e)
         mark_as(status_directory, "odb", version, "fail") 
-
-
 
 def build_dep(dep, version):
     log_file=os.path.normpath(logs_directory+f"/{dep}_{version}_build.log")
@@ -149,6 +151,9 @@ def mark_as(status_directory, dep, version, status):
     print(f"Build of {dep} {version}  - {status.upper()}")
     [rm(f"{status_directory}/{dep}-{version}-{i}") for i in ['fail', 'success']]
     touch(f"{status_directory}/{dep}-{version}-{status}")
+
+def already_built(status_directory, dep, version):
+    return os.path.exists(f"{status_directory}/{dep}-{version}-success")
 
 def rm(x):
     os.path.exists(x) and os.remove(x)

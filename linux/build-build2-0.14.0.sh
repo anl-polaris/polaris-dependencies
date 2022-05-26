@@ -9,6 +9,8 @@ elif [[ $POLARIS_DEPS_DIR != '' ]]; then
 else
   BASEDIR=$PWD
 fi
+BASEDIR=$(realpath ${BASEDIR})
+
 
 CXX=g++
 install_script_sum="f2e0795fda1bdc6b6ea4d2fc5917469725c20962bb1f6672c8d2462d76b3a7db *build2-install-0.14.0.sh"
@@ -27,7 +29,9 @@ cd $BUILD_DIR
 curl -sSfO https://download.build2.org/0.14.0/build2-install-0.14.0.sh
 echo ${install_script_sum} | sha256sum -c
 
-
+echo "BASEDIR      = ${BASEDIR}"
+echo "BUILD_DIR    = ${BUILD_DIR}"
+echo "INSTALL_DIR  = ${INSTALL_DIR}"
 sh build2-install-0.14.0.sh --cxx $CXX \
                             --yes \
                             --trust ${cpp_get_shasum} \
