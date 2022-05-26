@@ -1,13 +1,14 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.234.0/containers/cpp
 {
-	"name": "C++",
+	"name": "PolarisDepsDevContainer",
 	"build": {
 		"dockerfile": "Dockerfile",
-		// Update 'VARIANT' to pick an Debian / Ubuntu OS version: debian-11, debian-10, ubuntu-22.04, ubuntu-20.04, ubuntu-18.04
-		// Use Debian 11, Ubuntu 18.04 or Ubuntu 22.04 on local arm64/Apple Silicon
+		// Update 'VERSION' to pick an alternate gcc version / Debian base
+		// Full list is here: https://hub.docker.com/_/gcc
+		// Common ones are version-{buster,bullseye} (10.3-buster, 11.3-bullseye, etc)
 		"args": {
-			"VARIANT": "debian-10",
+			"VERSION": "10.3.0-buster",
 			"REINSTALL_CMAKE_VERSION_FROM_SOURCE": "3.23.1"
 		}
 	},
