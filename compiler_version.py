@@ -21,8 +21,6 @@ def main():
 
 def get_windows_compiler(msvc_version_number):
     compiler = "msvc"
-    global nmake_exe
-    global msbuild_exe
     version = ""
 
     if msvc_version_number == "15" or msvc_version_number == "2017":
@@ -36,7 +34,6 @@ def get_windows_compiler(msvc_version_number):
         os.environ["VisualStudioVersion"] = "15.0"
         os.environ["Platform"] = "x64"
         msbuild = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-        output = subprocess.run([f"doskey", f"msbuild={msbuild}"], shell=True)
     elif msvc_version_number == "16" or msvc_version_number == "2019":
         version = "16.0"
         base_dir = r"C:\Program Files (x86)\Microsoft Visual Studio\2019"
@@ -54,7 +51,6 @@ def get_windows_compiler(msvc_version_number):
         msbuild_exe = f"{base_dir}\\MSBuild\\Current\\Bin\\MSBuild.exe"
         os.environ["MSBUILD"] = msbuild_exe
         os.environ["NMAKE"] = f"{base_dir}\\SDK\\ScopeCppSDK\\VC\\bin\\nmake.exe"
-        output = subprocess.run([f"doskey", f"msbuild={msbuild_exe}"], shell=True)
     else:
         return ""
 

@@ -1,4 +1,3 @@
-echo "JMI"
 set deps_dir=%1
 set FILEDIR=%~dp0..\
 mkdir %deps_dir%\build2-build
