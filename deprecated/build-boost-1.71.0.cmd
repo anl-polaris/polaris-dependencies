@@ -9,6 +9,8 @@ IF NOT "%1" == "" (
 ) ELSE (
 	set BASEDIR=c:\opt\polaris\deps
 )
+echo %BASEDIR%
+echo "-------------------------"
 
 :: get our slashes all straightened out :)
 set a=%BASEDIR%
@@ -33,7 +35,6 @@ set BUILD_ERROR=0
 
 IF NOT EXIST %BOOSTZIPFILE% (
 	set ERRORLEVEL=
-	cd /D %BASEDIR%
 	%FILEDIR%utils\wget --show-progress=off -O %BOOSTZIPFILE% "https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.zip"
 	IF ERRORLEVEL 1 ( ECHO Download of '%BOOSTZIPFILE%' - FAIL  & ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1 )
 ) ELSE (
@@ -41,10 +42,10 @@ IF NOT EXIST %BOOSTZIPFILE% (
 )
 
 iF NOT EXIST %BOOSTDIR% (
-	%FILEDIR%utils\7-Zip\7z x %BOOSTZIPFILE%
+	%FILEDIR%utils\7-Zip\7z x %BOOSTZIPFILE% -o%BASEDIR%
 	IF ERRORLEVEL 1 ( ECHO Extraction of '%BOOSTZIPFILE%' - FAIL  & ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1 )
 ) ELSE (
-	ECHO Boost directory already exists
+	ECHO "Boost directory [(%BOOSTDIR%)] already exists"
 )
 
 
