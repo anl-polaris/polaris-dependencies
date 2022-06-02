@@ -117,8 +117,12 @@ def add_build2_to_path():
 
 
 def build_py_dep(dep, version, fn):
+    # This wraps the given function with early return and reporting using flags defined in the build_status directory
+    # TODO: 1. Capture stdout and stderr and pipe them to a log file as per the build_dep method below
+    #       2. Replace below method with a smaller fn which is wrapped by this one
 
     if already_built(status_directory, dep, version):
+        print(f"Build of {dep} {version}  - SUCCESS (already built)")
         return
 
     try:
