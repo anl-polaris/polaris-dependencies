@@ -1,7 +1,7 @@
 import os
 import sys
 from os.path import join
-from python.utils import download_and_unzip, run_and_stream
+from python.utils import build_script, download_and_unzip, run_and_stream
 
 
 def glpk_url(version):
