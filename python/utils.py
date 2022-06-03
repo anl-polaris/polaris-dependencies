@@ -64,7 +64,9 @@ def build_script(output_dir, contents):
 
 
 def run_and_stream(cmd, cwd):
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, cwd=cwd)
+    process = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=cwd
+    )
     for line in iter(process.stdout.readline, b""):
         sys.stdout.write(line.decode(sys.stdout.encoding))
     process.wait()
