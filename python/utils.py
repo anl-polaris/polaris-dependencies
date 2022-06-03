@@ -1,6 +1,11 @@
+import contextlib
+import os
 from os.path import basename, join, exists
+from pathlib import Path
+import pathlib
 import subprocess
 import sys
+from textwrap import dedent
 import urllib.request
 from zipfile import ZipFile
 import tarfile
@@ -37,6 +42,22 @@ class TeeLogger(object):
         sys.stderr = self.old_stderr
 
 
+def mkdir_p(x):
+    pathlib.Path(x).mkdir(parents=True, exist_ok=True)
+
+
+def build_script(output_dir, contents):
+    extension = "bat" if sys.platform == "win32" else "sh"
+    output_file = join(output_dir, f"temp.{extension}")
+    with open(output_file, "w") as f:
+        f.write(dedent(contents))
+
+    # Make the script executable (bat are automatically executable)
+    if sys.platform != "win32":
+        os.chmod(output_file, os.stat(output_file).st_mode | stat.S_IEXEC)
+    return output_file
+
+
 def run_and_stream(cmd, cwd):
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, cwd=cwd)
     for line in iter(process.stdout.readline, b""):
@@ -58,4 +79,14 @@ def download_and_unzip(url, directory, creates=None):
             file.extractall(directory)
     else:
         ZipFile(zip_file).extractall(directory)
-    return True
+
+
+@contextlib.contextmanager
+def chdir(path):
+    """Changes working directory and returns to previous on exit."""
+    prev_cwd = Path.cwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(prev_cwd)

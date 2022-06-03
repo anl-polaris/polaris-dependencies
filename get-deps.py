@@ -111,6 +111,7 @@ def add_build2_to_path():
     build2_bin_dir = abspath(join(deps_directory, "build2", "bin"))
     if build2_bin_dir not in os.environ["PATH"]:
         os.environ["PATH"] = build2_bin_dir + os.pathsep + os.environ["PATH"]
+    print(os.environ["PATH"])
 
     build2_lib_dir = abspath(join(deps_directory, "build2", "lib"))
     if "LD_LIBRARY_PATH" not in os.environ:

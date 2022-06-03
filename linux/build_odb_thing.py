@@ -1,22 +1,17 @@
-import sys, os, subprocess, pathlib, shutil, getopt, shlex
-from pathlib import Path
-from os.path import join, dirname, abspath
-import contextlib
+import pathlib
+import shlex
+import subprocess
+from os import chdir
+from os.path import join
 
-@contextlib.contextmanager
-def chdir(path):
-    """Changes working directory and returns to previous on exit."""
-    prev_cwd = Path.cwd()
-    os.chdir(path)
-    try:
-        yield
-    finally:
-        os.chdir(prev_cwd)
+from python.utils import mkdir_p, run_and_stream
+
 
 def build_odb(deps_dir, version):
     build_odb_thing(deps_dir, version, "compiler")
     build_odb_thing(deps_dir, version, "debug")
     build_odb_thing(deps_dir, version, "release")
+
 
 def build_odb_thing(deps_dir, version, thing):
     build_dir = create_bpkg_build_dir(deps_dir, version, thing)
@@ -35,15 +30,14 @@ def build_odb_thing(deps_dir, version, thing):
             run("bpkg install --all --recursive")
         else:
             raise RuntimeError(f"Don't know how build odb-thing: {thing}")
-    
+
 
 def create_bpkg_build_dir(deps_dir, version, thing):
     install_dir = join(deps_dir, f"odb-{version}-{thing}")
     build_dir = join(deps_dir, f"build-odb-{version}-{thing}")
-    lib_dir=join(install_dir, 'lib')
+    lib_dir = join(install_dir, "lib")
     mkdir_p(lib_dir)
     mkdir_p(build_dir)
-
 
     opt_level = "-O3" if thing == "debug" else "-O0"
 
@@ -55,12 +49,5 @@ def create_bpkg_build_dir(deps_dir, version, thing):
     cmd += f"config.install.root={install_dir} "
     if thing == "debug":
         cmd += "config.cc.coptions=-g "
-    run(cmd)
+    run_and_stream(cmd)
     return build_dir
-
-
-def run(x):
-    subprocess.run(shlex.split(x))
-
-def mkdir_p(x):
-    pathlib.Path(x).mkdir(parents=True, exist_ok=True)

@@ -1,8 +1,6 @@
 import os
 import sys
 from os.path import join
-from textwrap import dedent
-
 from python.utils import download_and_unzip, run_and_stream
 
 
@@ -29,14 +27,6 @@ def build_glpk_win32(glpk_dir):
         """,
     )
     return run_and_stream(cmd=temp_script, cwd=w64_dir).returncode == 0
-
-
-def build_script(output_dir, contents):
-    extension = "bat" if sys.platform == "win32" else "sh"
-    output_file = join(output_dir, f"temp.{extension}")
-    with open(output_file, "w") as f:
-        f.write(dedent(contents))
-    return output_file
 
 
 def build_glpk_posix(output_dir):
