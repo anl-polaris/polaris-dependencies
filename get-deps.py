@@ -4,7 +4,9 @@ from os.path import join, dirname, abspath, normpath
 
 sys.path.append(abspath("."))
 from linux.build_odb_thing import build_odb
-from python.build_boost import build_boost, build_glpk
+from python.build_boost import build_boost
+from python.build_glpk import build_glpk
+from python.utils import TeeLogger
 
 # python ./get-deps.py -c {compiler} -d {depsdir}
 # python ./get-deps.py -d {depsdir} -c {compiler}
@@ -66,9 +68,13 @@ def setup_variables():
     else:
         compiler = "15"
 
+    global verbose
+    verbose = False
     # Grab command line arguments (if any)
     argv = sys.argv[1:]
-    opts, args = getopt.getopt(argv, "c:d:", ["compiler =", "dependencies ="])
+    opts, args = getopt.getopt(
+        argv, "c:d:v", ["compiler =", "dependencies =", "verbose"]
+    )
     for opt, arg in opts:
         if opt in ["-c", "--compiler"]:
             compiler = arg
@@ -76,6 +82,8 @@ def setup_variables():
         elif opt in ["-d", "--dependencies"]:
             base_directory = arg
             print(f"Dependencies input = {arg}")
+        elif opt in ["-v", "--verbose"]:
+            verbose = True
 
     global compiler_version
     if operatingSystem == "linux":
@@ -86,12 +94,9 @@ def setup_variables():
         print("No compiler found")
         quit()
 
-    global verbose
     global deps_directory
     global logs_directory
     global status_directory
-
-    verbose = 1
     deps_directory = abspath(normpath(f"{base_directory}/{compiler_version}/"))
     logs_directory = abspath(normpath(f"{deps_directory}/builds/"))
     status_directory = abspath(normpath(f"{deps_directory}/build_status/"))
@@ -126,8 +131,15 @@ def build_py_dep(dep, version, fn):
         return
 
     try:
-        fn()
-        mark_as(status_directory, dep, version, "success")
+        log_file = os.path.normpath(logs_directory + f"/{dep}_{version}_build.log")
+        with TeeLogger(log_file, verbose):
+            fn_return_value = fn()
+
+        if fn_return_value:
+            mark_as(status_directory, dep, version, "success")
+        else:
+            mark_as(status_directory, dep, version, "fail")
+
     except Exception as e:
         print(f"Failed while building {dep}: ")
         print(e)
