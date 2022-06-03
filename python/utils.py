@@ -49,17 +49,17 @@ def mkdir_p(x):
 
 
 def build_script(output_dir, contents):
-    extension = "bat" if sys.platform == "win32" else "sh"
+    extension = "bat" if is_windows() else "sh"
     output_file = join(output_dir, f"temp.{extension}")
     with open(output_file, "w") as f:
         # Make the script is self executable
-        if sys.platform != "win32":
+        if is_posix():
             f.write("#!/usr/bin/env bash\n")
 
         f.write(dedent(contents))
 
     # Make the script executable (bat are automatically executable)
-    if sys.platform != "win32":
+    if is_posix():
         os.chmod(output_file, os.stat(output_file).st_mode | stat.S_IEXEC)
     return output_file
 
@@ -102,3 +102,34 @@ def chdir(path):
         yield
     finally:
         os.chdir(prev_cwd)
+
+
+def is_windows():
+    return sys.platform == "win32"
+
+
+def not_windows():
+    return not is_windows()
+
+
+is_posix = not_windows
+not_posix = is_windows
+
+# Possible return values for sys.platform
+# ┍━━━━━━━━━━━━━━━━━━━━━┯━━━━━━━━━━━━━━━━━━━━━┑
+# │ System              │ Value               │
+# ┝━━━━━━━━━━━━━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━━┥
+# │ Linux               │ linux or linux2 (*) │
+# │ Windows             │ win32               │
+# │ Windows/Cygwin      │ cygwin              │
+# │ Windows/MSYS2       │ msys                │
+# │ Mac OS X            │ darwin              │
+# │ OS/2                │ os2                 │
+# │ OS/2 EMX            │ os2emx              │
+# │ RiscOS              │ riscos              │
+# │ AtheOS              │ atheos              │
+# │ FreeBSD 7           │ freebsd7            │
+# │ FreeBSD 8           │ freebsd8            │
+# │ FreeBSD N           │ freebsdN            │
+# │ OpenBSD 6           │ openbsd6            │
+# ┕━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━┙

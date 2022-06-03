@@ -1,12 +1,12 @@
-import sys, os, subprocess, pathlib, shutil, getopt
-from compiler_version import get_linux_compiler, get_windows_compiler
-from os.path import join, dirname, abspath, normpath
+import sys, os, subprocess, shutil, getopt
+from os.path import join, abspath, normpath
 
 sys.path.append(abspath("."))
-from linux.build_odb_thing import build_odb
+from python.compiler_version import get_compiler_version
+from python.build_odb_thing import build_odb
 from python.build_boost import build_boost
 from python.build_glpk import build_glpk
-from python.utils import TeeLogger, mkdir_p
+from python.utils import TeeLogger, mkdir_p, is_posix, is_windows
 
 # python ./get-deps.py -c {compiler} -d {depsdir}
 # python ./get-deps.py -d {depsdir} -c {compiler}
@@ -26,25 +26,13 @@ def main():
     build_py_dep("odb", "2.5.0", lambda: build_odb(deps_directory, "2.5.0"))
     build_dep("gtest", "1.11.0")
 
-    if operatingSystem == "win32":
+    if is_windows():
         copy_files()
 
     summarise()
 
 
 def setup_variables():
-    # What OS are we using?
-    global operatingSystem
-    if sys.platform == "linux" or sys.platform == "linux2":
-        operatingSystem = "linux"
-    elif sys.platform == "win32":
-        operatingSystem = "win32"
-    elif sys.platform == "darwin":
-        print(f"POLARIS does not support {sys.platform}")
-        quit()
-    else:
-        print(f"Platform {sys.platform} not supported")
-        quit()
 
     # polarisdeps directory for our git repository, ie. where get-deps lives
     global working_directory
@@ -54,19 +42,13 @@ def setup_variables():
     if "POLARIS_DEPS_DIR" in os.environ:
         base_directory = os.environ["POLARIS_DEPS_DIR"]
     else:
-        if operatingSystem == "linux":
-            print("Defaulting the dependency directory to /opt/polaris/deps")
-            base_directory = "/opt/polaris/deps"
-        else:
-            print("Defaulting the dependency directory to C:\\opt\\polaris\\deps\\")
-            base_directory = "C:\\opt\\polaris\deps\\"
+        base_directory = (
+            "/opt/polaris/deps" if is_posix() else "C:\\opt\\polaris\deps\\"
+        )
 
     # compiler should be able to call MSVC on Windows
     global compiler
-    if operatingSystem == "linux":
-        compiler = "gcc"
-    else:
-        compiler = "15"
+    compiler = "gcc" if is_posix() else "15"
 
     global verbose
     verbose = False
@@ -78,21 +60,13 @@ def setup_variables():
     for opt, arg in opts:
         if opt in ["-c", "--compiler"]:
             compiler = arg
-            print(f"Compiler input = {arg}")
         elif opt in ["-d", "--dependencies"]:
             base_directory = arg
-            print(f"Dependencies input = {arg}")
         elif opt in ["-v", "--verbose"]:
             verbose = True
 
     global compiler_version
-    if operatingSystem == "linux":
-        compiler_version = get_linux_compiler(compiler)
-    else:
-        compiler_version = get_windows_compiler(compiler)
-    if compiler_version == "":
-        print("No compiler found")
-        quit()
+    compiler_version = get_compiler_version(compiler)
 
     global deps_directory
     global logs_directory
@@ -101,7 +75,7 @@ def setup_variables():
     logs_directory = abspath(normpath(f"{deps_directory}/builds/"))
     status_directory = abspath(normpath(f"{deps_directory}/build_status/"))
 
-    print(f"Building in: {deps_directory}")
+    print(f"Building into ->        {deps_directory}")
 
     for i in [deps_directory, logs_directory, status_directory]:
         mkdir_p(i)
@@ -111,7 +85,6 @@ def add_build2_to_path():
     build2_bin_dir = abspath(join(deps_directory, "build2", "bin"))
     if build2_bin_dir not in os.environ["PATH"]:
         os.environ["PATH"] = build2_bin_dir + os.pathsep + os.environ["PATH"]
-    print(os.environ["PATH"])
 
     build2_lib_dir = abspath(join(deps_directory, "build2", "lib"))
     if "LD_LIBRARY_PATH" not in os.environ:
@@ -155,7 +128,7 @@ def build_dep(dep, version):
 
     # Should call cmd scripts on Windows
     print(f"Building {dep}-{version}, log: {log_file}")
-    if operatingSystem == "linux":
+    if is_posix():
         command = [
             f"{working_directory}/linux/build-{dep}-{version}.sh",
             f"{deps_directory}",
