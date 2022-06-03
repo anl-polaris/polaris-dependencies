@@ -67,6 +67,8 @@ def build_script(output_dir, contents):
 def run_and_stream(cmd, cwd):
     if isinstance(cmd, str):
         cmd = shlex.split(cmd)
+
+    print(f"=== Running command: {cmd}")
     process = subprocess.Popen(
         cmd, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=cwd
     )

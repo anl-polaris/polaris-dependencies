@@ -42,13 +42,13 @@ def create_bpkg_build_dir(deps_dir, version, thing):
 
     opt_level = "-O3" if thing == "debug" else "-O0"
 
-    cmd = f"bpkg create -d {build_dir} cc --wipe "
+    cmd = f"bpkg create -d \"{build_dir}\" cc --wipe "
     cmd += "config.cxx=g++ "
     cmd += f"config.cc.coptions={opt_level} "
     cmd += "config.cxx.coptions=-std=c++17 "
     # The rpath is used to set a relative search path for so files 
     cmd += f"config.bin.rpath=\"\$ORIGIN/../lib\" "
-    cmd += f"config.install.root={install_dir} "
+    cmd += f"config.install.root=\"{install_dir}\" "
     if thing == "debug":
         cmd += "config.cc.coptions=-g "
     run_and_stream(cmd, cwd=build_dir)
