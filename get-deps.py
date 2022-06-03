@@ -6,7 +6,7 @@ sys.path.append(abspath("."))
 from linux.build_odb_thing import build_odb
 from python.build_boost import build_boost
 from python.build_glpk import build_glpk
-from python.utils import TeeLogger
+from python.utils import TeeLogger, mkdir_p
 
 # python ./get-deps.py -c {compiler} -d {depsdir}
 # python ./get-deps.py -d {depsdir} -c {compiler}
@@ -203,10 +203,6 @@ def rm(x):
 
 def touch(x):
     open(x, "a").close()
-
-
-def mkdir_p(x):
-    pathlib.Path(x).mkdir(parents=True, exist_ok=True)
 
 
 def copy_files():

@@ -1,6 +1,7 @@
 import contextlib
 import os
 import pathlib
+import shlex
 import stat
 import subprocess
 import sys
@@ -64,8 +65,10 @@ def build_script(output_dir, contents):
 
 
 def run_and_stream(cmd, cwd):
+    if isinstance(cmd, str):
+        cmd = shlex.split(cmd)
     process = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=cwd
+        cmd, env=os.environ, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=cwd
     )
     for line in iter(process.stdout.readline, b""):
         sys.stdout.write(line.decode(sys.stdout.encoding))
