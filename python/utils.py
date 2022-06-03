@@ -1,14 +1,15 @@
 import contextlib
 import os
-from os.path import basename, join, exists
-from pathlib import Path
 import pathlib
+import stat
 import subprocess
 import sys
-from textwrap import dedent
-import urllib.request
-from zipfile import ZipFile
 import tarfile
+import urllib.request
+from os.path import basename, exists, join
+from pathlib import Path
+from textwrap import dedent
+from zipfile import ZipFile
 
 
 class TeeLogger(object):
