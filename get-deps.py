@@ -6,7 +6,7 @@ from python.compiler_version import get_compiler_version
 from python.build_odb_thing import build_odb
 from python.build_boost import build_boost
 from python.build_glpk import build_glpk
-from python.utils import TeeLogger, mkdir_p, is_posix, is_windows
+from python.utils import TeeLogger, mkdir_p, is_posix, is_windows, run_and_stream
 
 # python ./get-deps.py -c {compiler} -d {depsdir}
 # python ./get-deps.py -d {depsdir} -c {compiler}
@@ -65,17 +65,15 @@ def setup_variables():
         elif opt in ["-v", "--verbose"]:
             verbose = True
 
-    global compiler_version
+    print("\n--------------------------")
+    print("        Build Phase")
+    print("--------------------------\n")
+    global compiler_version, deps_directory, logs_directory, status_directory
     compiler_version = get_compiler_version(compiler)
-
-    global deps_directory
-    global logs_directory
-    global status_directory
     deps_directory = abspath(normpath(f"{base_directory}/{compiler_version}/"))
     logs_directory = abspath(normpath(f"{deps_directory}/builds/"))
     status_directory = abspath(normpath(f"{deps_directory}/build_status/"))
-
-    print(f"Building into ->        {deps_directory}")
+    print(f"Building into ->        {deps_directory}\n")
 
     for i in [deps_directory, logs_directory, status_directory]:
         mkdir_p(i)
@@ -97,15 +95,15 @@ def add_build2_to_path():
 
 def build_py_dep(dep, version, fn):
     # This wraps the given function with early return and reporting using flags defined in the build_status directory
-    # TODO: 1. Capture stdout and stderr and pipe them to a log file as per the build_dep method below
-    #       2. Replace below method with a smaller fn which is wrapped by this one
+    dep_ver = f"{dep}-{version}"
+    log_file = os.path.normpath(logs_directory + f"/{dep}_{version}_build.log")
 
     if already_built(status_directory, dep, version):
-        print(f"Build of {dep} {version}  - SUCCESS (already built)")
+        print(f"  {dep_ver:<18}  - skipping - already built")
         return
+    print(f"  {dep_ver:<18}  - building -> {log_file}")
 
     try:
-        log_file = os.path.normpath(logs_directory + f"/{dep}_{version}_build.log")
         with TeeLogger(log_file, verbose):
             fn_return_value = fn()
 
@@ -121,47 +119,24 @@ def build_py_dep(dep, version, fn):
 
 
 def build_dep(dep, version):
-    log_file = os.path.normpath(logs_directory + f"/{dep}_{version}_build.log")
-    if os.path.exists(status_directory + f"/{dep}-{version}-success"):
-        print(f"Build of {dep} {version}  - SUCCESS (already built)")
-        return
+    build_py_dep(dep, version, lambda: build_dep_(dep, version))
 
-    # Should call cmd scripts on Windows
-    print(f"Building {dep}-{version}, log: {log_file}")
-    if is_posix():
-        command = [
-            f"{working_directory}/linux/build-{dep}-{version}.sh",
-            f"{deps_directory}",
-            f"{compiler}",
-        ]
-    else:
-        command = [
-            f"{working_directory}\\win32\\build-{dep}-{version}.cmd",
-            f"{deps_directory}",
-        ]
+
+def build_dep_(dep, version):
+    extension = "sh" if is_posix() else "cmd"
+    filename = f"{working_directory}/linux/build-{dep}-{version}.{extension}"
+    command = [filename, deps_directory, compiler]
+
+    if is_windows():
         command = ["cmd.exe", "/C", " ".join(command)]
 
-    with open(log_file, "w", buffering=1) as f:
-        # This can be done more elegantly by just passing f to stdout= in the Popen call
-        # but this causes some strange behaviour on bebop, so we do it manually
-        print(command)
-
-        ps = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        while True:
-            line = ps.stdout.readline().decode()
-            if line == "":
-                break
-            f.write(line.strip() + "\n")
-            if verbose:
-                print(line.strip())
-        ps.wait()
-
-    status = "success" if ps.returncode == 0 else "fail"
-    mark_as(status_directory, dep, version, status)
+    return run_and_stream(command, cwd=None)
 
 
 def mark_as(status_directory, dep, version, status):
-    print(f"Build of {dep} {version}  - {status.upper()}")
+    symbol = "✔" if status == "success" else "✘"
+    dep_ver = ""
+    print(f"  {dep_ver:<18}  - {symbol} {status}")
     [rm(f"{status_directory}/{dep}-{version}-{i}") for i in ["fail", "success"]]
     touch(f"{status_directory}/{dep}-{version}-{status}")
 
@@ -245,7 +220,7 @@ def summarise():
     for filename in os.listdir(status_directory):
         lib, version, status = filename.split("-")
         symbol = "✔" if status == "success" else "✘"
-        print(f"{symbol}  {lib} {version} {status}")
+        print(f"  {lib:>10} {version:>8} {symbol}")
 
 
 if __name__ == "__main__":
