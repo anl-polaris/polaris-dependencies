@@ -51,6 +51,10 @@ def build_script(output_dir, contents):
     extension = "bat" if sys.platform == "win32" else "sh"
     output_file = join(output_dir, f"temp.{extension}")
     with open(output_file, "w") as f:
+        # Make the script is self executable
+        if sys.platform != "win32":
+            f.write("#!/usr/bin/env bash\n")
+
         f.write(dedent(contents))
 
     # Make the script executable (bat are automatically executable)
