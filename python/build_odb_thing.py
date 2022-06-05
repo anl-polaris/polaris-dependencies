@@ -8,9 +8,9 @@ from python.utils import mkdir_p, run_and_stream, is_posix
 
 
 def build_odb(deps_dir, version, compiler):
-    # build_odb_thing(deps_dir, version, "compiler", compiler)
+    build_odb_thing(deps_dir, version, "compiler", compiler)
     build_odb_thing(deps_dir, version, "debug", compiler)
-    # build_odb_thing(deps_dir, version, "release", compiler)
+    build_odb_thing(deps_dir, version, "release", compiler)
     return True
 
 
