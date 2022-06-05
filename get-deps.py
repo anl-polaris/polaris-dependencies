@@ -1,11 +1,13 @@
 import sys, os, subprocess, shutil, getopt
 from os.path import join, abspath, normpath
+from python.build_log4cpp import build_log4cpp
 
 sys.path.append(abspath("."))
 from python.compiler_version import get_compiler_version
 from python.build_odb_thing import build_odb
 from python.build_boost import build_boost
 from python.build_glpk import build_glpk
+from python.build_log4cpp import build_log4cpp
 from python.utils import TeeLogger, mkdir_p, is_posix, is_windows, run_and_stream
 
 # python ./get-deps.py -c {compiler} -d {depsdir}
@@ -17,7 +19,8 @@ def main():
     setup_variables()
     build_dep("build2", "0.14.0")
     add_build2_to_path()
-    build_dep("log4cpp", "1.1.3")
+    # build_dep("log4cpp", "1.1.3")
+    build_py_dep("log4cpp", "1.1.3", lambda: build_log4cpp(deps_directory, "1.1.3"))
     build_dep("tflite", "2.4.0")
     build_py_dep("boost", "1.71.0", lambda: build_boost(deps_directory))
     build_py_dep("glpk", "4.65", lambda: build_glpk(deps_directory, "4.65"))
@@ -124,7 +127,8 @@ def build_dep(dep, version):
 
 def build_dep_(dep, version):
     extension = "sh" if is_posix() else "cmd"
-    filename = f"{working_directory}/linux/build-{dep}-{version}.{extension}"
+    sub_dir = "linux" if is_posix() else "win32"
+    filename = f"{working_directory}/{sub_dir}/build-{dep}-{version}.{extension}"
     command = [filename, deps_directory, compiler]
 
     if is_windows():

@@ -30,6 +30,7 @@ def get_windows_compiler(msvc_version_number):
         ] = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\"
         os.environ["VisualStudioVersion"] = "15.0"
         os.environ["Platform"] = "x64"
+        os.environ["CMake_Generator"] = "Visual Studio 15 Win64"
         msbuild = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\Bin\\MSBuild.exe"
     elif msvc_version_number == "16" or msvc_version_number == "2019":
         version = "16.0"
@@ -44,6 +45,7 @@ def get_windows_compiler(msvc_version_number):
         os.environ["VCROOT"] = f"{base_dir}\\VC\\Auxiliary\\Build\\"
         os.environ["VisualStudioVersion"] = "16.0"
         os.environ["Platform"] = "x64"
+        os.environ["CMake_Generator"] = "Visual Studio 16 2019"
         # set NMAKE="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\SDK\ScopeCppSDK\VC\bin\nmake.exe"
         msbuild_exe = f"{base_dir}\\MSBuild\\Current\\Bin\\MSBuild.exe"
         os.environ["MSBUILD"] = msbuild_exe

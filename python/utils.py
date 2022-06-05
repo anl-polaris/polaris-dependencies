@@ -51,6 +51,7 @@ def mkdir_p(x):
 def build_script(output_dir, contents):
     extension = "bat" if is_windows() else "sh"
     output_file = join(output_dir, f"temp.{extension}")
+    mkdir_p(output_dir)
     with open(output_file, "w") as f:
         # Make the script is self executable
         if is_posix():
@@ -66,7 +67,7 @@ def build_script(output_dir, contents):
 
 def run_and_stream(cmd, cwd):
     if isinstance(cmd, str):
-        cmd = shlex.split(cmd)
+        cmd = shlex.split(cmd, posix=is_posix())
 
     print(f"=== Running command: {cmd}")
     process = subprocess.Popen(
@@ -78,11 +79,11 @@ def run_and_stream(cmd, cwd):
     return process
 
 
-def download_and_unzip(url, directory, creates=None):
+def download_and_unzip(url, directory, creates=None, filename=None, after=None):
     if creates and exists(join(directory, creates)):
         print(f"Directory: {creates} already exists, skipping")
         return  # early
-    zip_file = join(directory, basename(url))
+    zip_file = filename or join(directory, basename(url))
     if not exists(zip_file):
         urllib.request.urlretrieve(url, zip_file)
 
@@ -91,6 +92,9 @@ def download_and_unzip(url, directory, creates=None):
             file.extractall(directory)
     else:
         ZipFile(zip_file).extractall(directory)
+
+    if after:  # allows the caller to provide specific after download script
+        after()
 
 
 @contextlib.contextmanager
