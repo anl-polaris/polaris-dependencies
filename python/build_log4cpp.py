@@ -16,12 +16,8 @@ def build_log4cpp(output_dir, version):
         output_dir,
         creates=dep_ver,
         filename=f"log4cpp-{version}.tar.gz",
-        after=lambda: [
-            sleep(2),  # wait for the unzip to release the dir so that we can rename it
-            os.rename(join(output_dir, "log4cpp"), join(output_dir, dep_ver)),
-        ],
     )
-    log4cpp_dir = join(output_dir, f"log4cpp-{version}")
+    log4cpp_dir = join(output_dir, f"log4cpp")
     build_fn = build_log4cpp_win32 if sys.platform == "win32" else build_log4cpp_posix
     return build_fn(log4cpp_dir)
 
