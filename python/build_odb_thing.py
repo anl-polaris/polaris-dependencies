@@ -2,19 +2,20 @@ import pathlib
 import shlex
 import subprocess
 from os.path import join
+from python.compiler_version import get_cxx_compiler
 
 from python.utils import mkdir_p, run_and_stream, is_posix
 
 
-def build_odb(deps_dir, version):
-    build_odb_thing(deps_dir, version, "compiler")
-    build_odb_thing(deps_dir, version, "debug")
-    build_odb_thing(deps_dir, version, "release")
+def build_odb(deps_dir, version, compiler):
+    # build_odb_thing(deps_dir, version, "compiler", compiler)
+    build_odb_thing(deps_dir, version, "debug", compiler)
+    # build_odb_thing(deps_dir, version, "release", compiler)
     return True
 
 
-def build_odb_thing(deps_dir, version, thing):
-    build_dir = create_bpkg_build_dir(deps_dir, version, thing)
+def build_odb_thing(deps_dir, version, thing, compiler):
+    build_dir = create_bpkg_build_dir(deps_dir, version, thing, compiler)
 
     def run(cmd):
         if run_and_stream(cmd, cwd=build_dir).returncode != 0:
@@ -36,24 +37,42 @@ def build_odb_thing(deps_dir, version, thing):
         raise RuntimeError(f"Don't know how build odb-thing: {thing}")
 
 
-def create_bpkg_build_dir(deps_dir, version, thing):
+def create_bpkg_build_dir(deps_dir, version, thing, compiler):
     install_dir = join(deps_dir, f"odb-{version}-{thing}")
     build_dir = join(deps_dir, f"build-odb-{version}-{thing}")
     lib_dir = join(install_dir, "lib")
     mkdir_p(lib_dir)
     mkdir_p(build_dir)
 
-    opt_level = "-O3" if thing == "debug" else "-O0"
-
-    cmd = f'bpkg create -d "{build_dir}" cc --wipe '
-    cmd += "config.cxx=g++ "
-    cmd += f"config.cc.coptions={opt_level} "
-    cmd += "config.cxx.coptions=-std=c++17 "
+    cmd = ["bpkg", "create", "-v", "-d", f"{build_dir}", "cc", "--wipe"]
+    cmd.append(f'config.cxx="{get_cxx_compiler(compiler)}"')
+    cmd.append(f"config.cc.coptions={get_cc_options(thing, compiler)}")
+    cmd.append(f"config.cxx.coptions={get_std(compiler)}")
+    cmd.append(get_linker_options(thing, compiler))
     # The rpath is used to set a relative search path for so files
     if is_posix():
-        cmd += f'config.bin.rpath="\$ORIGIN/../lib" '
-    cmd += f'config.install.root="{install_dir}" '
-    if thing == "debug":
-        cmd += "config.cc.coptions=-g "
+        cmd.append(f'config.bin.rpath="\$ORIGIN/../lib" ')
+    cmd.append(f'config.install.root="{install_dir}" ')
+    cmd = [o for o in cmd if o]  # Remove any None that came from unneeded options
     run_and_stream(cmd, cwd=build_dir)
     return build_dir
+
+
+def get_cc_options(thing, compiler):
+    if "gcc" in compiler:
+        return "-O3" if thing == "debug" else "-O0 -g"
+    if "msvc" in compiler:
+        return "/Od /MDd /Zi" if thing == "debug" else "/O2 /MD"
+
+
+def get_std(compiler):
+    if "gcc" in compiler:
+        return "-std=c++17"
+    if "msvc" in compiler:
+        return "/std:c++17"
+
+
+def get_linker_options(thing, compiler):
+    if "msvc" in compiler and thing == "debug":
+        return "config.cc.loptions=/DEBUG"
+    return None

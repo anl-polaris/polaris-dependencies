@@ -56,6 +56,18 @@ def get_windows_compiler(msvc_version_number):
     return f"{compiler}-{version}"
 
 
+def get_cxx_compiler(compiler_version):
+    if "msvc" in compiler_version:
+        return "cl.exe"
+    if "gcc" in compiler_version:
+        return "g++"
+    if "clang" in compiler_version:
+        return "clang++"
+    raise RuntimeError(
+        f"Don't know what c++ compiler to use for name: {compiler_version}"
+    )
+
+
 def get_linux_compiler(compiler_name):
     compiler = ""
     version = ""

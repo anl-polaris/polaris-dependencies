@@ -26,7 +26,9 @@ def main():
     build_py_dep("glpk", "4.65", lambda: build_glpk(deps_directory, "4.65"))
     build_dep("boost", "1.71.0")
     build_dep("rapidjson", "1.1.0")
-    build_py_dep("odb", "2.5.0", lambda: build_odb(deps_directory, "2.5.0"))
+    build_py_dep(
+        "odb", "2.5.0", lambda: build_odb(deps_directory, "2.5.0", compiler_version)
+    )
     build_dep("gtest", "1.11.0")
 
     if is_windows():
