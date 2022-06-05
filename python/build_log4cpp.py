@@ -39,9 +39,8 @@ def build_log4cpp_posix(output_dir):
     temp_script = build_script(
         output_dir,
         f"""
-            ./configure --prefix={output_dir}
+            ./configure
             make --jobs=10
-            make install
         """,
     )
     return run_and_stream(cmd=temp_script, cwd=output_dir).returncode == 0
