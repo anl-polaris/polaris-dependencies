@@ -1,5 +1,7 @@
+from socket import AddressFamily
 import sys, os, subprocess, shutil, getopt
 from os.path import join, abspath, normpath
+import tarfile
 from python.build_log4cpp import build_log4cpp
 
 sys.path.append(abspath("."))
@@ -36,11 +38,14 @@ def main():
 
     summarise()
 
+    if produce_package:
+        produce_package_()
+
 
 def setup_variables():
 
     # polarisdeps directory for our git repository, ie. where get-deps lives
-    global working_directory
+    global working_directory, base_directory
     working_directory = os.getcwd()
 
     # set default values for directory and compiler before checking input
@@ -55,12 +60,12 @@ def setup_variables():
     global compiler
     compiler = "gcc" if is_posix() else "15"
 
-    global verbose
-    verbose = False
+    global verbose, produce_package
+    verbose, produce_package = False, False
     # Grab command line arguments (if any)
     argv = sys.argv[1:]
     opts, args = getopt.getopt(
-        argv, "c:d:v", ["compiler =", "dependencies =", "verbose"]
+        argv, "c:d:vp", ["compiler =", "dependencies =", "verbose", "package"]
     )
     for opt, arg in opts:
         if opt in ["-c", "--compiler"]:
@@ -69,6 +74,8 @@ def setup_variables():
             base_directory = arg
         elif opt in ["-v", "--verbose"]:
             verbose = True
+        elif opt in ["-p", "--package"]:
+            produce_package = True
 
     print("\n--------------------------")
     print("        Build Phase")
@@ -222,11 +229,26 @@ def summarise():
     print("\n--------------------------")
     print("        Summary")
     print("--------------------------\n")
-    print(f"Checking status files from {status_directory}")
+    print("Checking status files from:")
+    print(f"  {status_directory}")
     for filename in os.listdir(status_directory):
         lib, version, status = filename.split("-")
         symbol = "✔" if status == "success" else "✘"
         print(f"  {lib:>10} {version:>8} {symbol}")
+
+
+def produce_package_():
+    print("\n--------------------------")
+    print("        Packaging")
+    print("--------------------------\n")
+    output_filename = join(base_directory, f"{compiler_version}.tar.gz")
+    print(f"Packaging -> {output_filename}")
+
+    with tarfile.open(output_filename, "w:gz") as tar:
+        tar.add(deps_directory, arcname=os.path.basename(deps_directory))
+
+    print("You should now upload the packaged tar.gz file to Box: ")
+    print("  https://anl.app.box.com/folder/164571273717")
 
 
 if __name__ == "__main__":
