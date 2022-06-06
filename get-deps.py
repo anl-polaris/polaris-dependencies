@@ -267,10 +267,14 @@ def produce_package_():
     output_filename = join(base_directory, f"{compiler_version}.tar.gz")
     print(f"Packaging -> {output_filename}")
 
-    exclude_dirs = ["build2-build", "build-odb-"]
+    exclude_dirs = ["build2-build", "build-odb-", "tensorflow_src"]
 
     def exclude_build_dirs(x):
-        if any([e in x.name for e in exclude_dirs]):
+        if (
+            any([e in x.name for e in exclude_dirs])
+            or x.name.endswith("zip")
+            or x.name.endswith("gz")
+        ):
             return None
         return x
 
