@@ -62,10 +62,6 @@ set BUILD_ERROR=0
 set ERRORLEVEL=
 cd /D %BASEDIR%
 %FILEDIR%utils\wget --show-progress=off -O %TARBALL% "https://sourceforge.net/projects/log4cpp/files/latest/download" --no-check-certificate
-echo %FILEDIR%utils\wget --show-progress=off -O %TARBALL% "https://sourceforge.net/projects/log4cpp/files/latest/download" --no-check-certificate
-echo where tar
-echo tar xzvf %TARBALL%
-echo which tar
 tar xzvf --force-local %TARBALL%
 IF ERRORLEVEL 1 ( ECHO Download and Extract of '%TARBALL%' - FAIL  & ECHO STTATUS: FAIL & ENDLOCAL & EXIT /B 1 )
 

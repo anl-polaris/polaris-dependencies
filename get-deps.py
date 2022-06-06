@@ -1,5 +1,5 @@
-from socket import AddressFamily
-import sys, os, subprocess, shutil, getopt
+import sys, os, shutil, getopt
+import distutils.spawn
 from os.path import join, abspath, normpath
 import tarfile
 from python.build_log4cpp import build_log4cpp
@@ -19,18 +19,20 @@ from python.utils import TeeLogger, mkdir_p, is_posix, is_windows, run_and_strea
 
 def main():
     setup_variables()
+
+    # We have to do this first as we need bpkg to compile the odb library later
     build_dep("build2", "0.14.0")
     add_build2_to_path()
-    # build_dep("log4cpp", "1.1.3")
-    build_py_dep("log4cpp", "1.1.3", lambda: build_log4cpp(deps_directory, "1.1.3"))
-    build_dep("tflite", "2.4.0")
-    build_py_dep("boost", "1.71.0", lambda: build_boost(deps_directory))
-    build_py_dep("glpk", "4.65", lambda: build_glpk(deps_directory, "4.65"))
-    build_dep("boost", "1.71.0")
+
+    log4cpp_builder = lambda: build_log4cpp(deps_directory, "1.1.3", compiler_version)
+    odb_builder = lambda: build_odb(deps_directory, "2.5.0", compiler_version)
+
+    build_py_dep("log4cpp", "1.1.3", log4cpp_builder)
     build_dep("rapidjson", "1.1.0")
-    build_py_dep(
-        "odb", "2.5.0", lambda: build_odb(deps_directory, "2.5.0", compiler_version)
-    )
+    build_py_dep("boost", "1.71.0", lambda: build_boost(deps_directory))
+    build_dep("tflite", "2.4.0")
+    build_py_dep("glpk", "4.65", lambda: build_glpk(deps_directory, "4.65"))
+    build_py_dep("odb", "2.5.0", odb_builder)
     build_dep("gtest", "1.11.0")
 
     if is_windows():
@@ -95,6 +97,7 @@ def add_build2_to_path():
     build2_bin_dir = abspath(join(deps_directory, "build2", "bin"))
     if build2_bin_dir not in os.environ["PATH"]:
         os.environ["PATH"] = build2_bin_dir + os.pathsep + os.environ["PATH"]
+    distutils.spawn.find_executable("bpkg")
 
     build2_lib_dir = abspath(join(deps_directory, "build2", "lib"))
     if "LD_LIBRARY_PATH" not in os.environ:
@@ -143,7 +146,7 @@ def build_dep_(dep, version):
     if is_windows():
         command = ["cmd.exe", "/C", " ".join(command)]
 
-    return run_and_stream(command, cwd=None)
+    return run_and_stream(command, cwd=None).returncode == 0
 
 
 def mark_as(status_directory, dep, version, status):

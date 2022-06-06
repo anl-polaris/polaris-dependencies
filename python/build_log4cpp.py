@@ -1,4 +1,5 @@
 import os
+from platform import architecture
 import sys
 from os.path import join
 from time import sleep
@@ -9,7 +10,7 @@ def log4cpp_url(version):
     return f"https://sourceforge.net/projects/log4cpp/files/log4cpp-1.1.x%20%28new%29/log4cpp-1.1/log4cpp-{version}.tar.gz/download"
 
 
-def build_log4cpp(output_dir, version):
+def build_log4cpp(output_dir, version, compiler):
     dep_ver = f"log4cpp-{version}"
     download_and_unzip(
         log4cpp_url(version),
@@ -19,15 +20,17 @@ def build_log4cpp(output_dir, version):
     )
     log4cpp_dir = join(output_dir, f"log4cpp")
     build_fn = build_log4cpp_win32 if sys.platform == "win32" else build_log4cpp_posix
-    return build_fn(log4cpp_dir)
+    return build_fn(log4cpp_dir, compiler)
 
 
-def build_log4cpp_win32(log4cpp_dir):
+def build_log4cpp_win32(log4cpp_dir, compiler):
     build_dir = join(log4cpp_dir, "CMAKE_BUILD")
+    architecture = "" if compiler == "msvc-15.0" else "-A x64"
+    print(compiler)
     temp_script = build_script(
         build_dir,
         f"""
-            cmake -G "{ os.environ["CMake_Generator"] }" -A x64 ..\. -Wno-dev
+            cmake -G "{ os.environ["CMake_Generator"] }" {architecture} ..\. -Wno-dev
             cmake --build . -j --config Debug
             cmake --build . -j --config RelWithDebInfo
         """,
@@ -35,7 +38,7 @@ def build_log4cpp_win32(log4cpp_dir):
     return run_and_stream(cmd=temp_script, cwd=build_dir).returncode == 0
 
 
-def build_log4cpp_posix(output_dir):
+def build_log4cpp_posix(output_dir, compiler):
     temp_script = build_script(
         output_dir,
         f"""
