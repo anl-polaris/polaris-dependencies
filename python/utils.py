@@ -45,7 +45,7 @@ class TeeLogger(object):
 
 
 def mkdir_p(x):
-    pathlib.Path(x).mkdir(parents=True, exist_ok=True)
+    Path(x).mkdir(parents=True, exist_ok=True)
 
 
 def build_script(output_dir, contents):

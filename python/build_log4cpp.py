@@ -11,16 +11,16 @@ def log4cpp_url(version):
 
 
 def build_log4cpp(output_dir, version, compiler):
-    dep_ver = f"log4cpp-{version}"
+    install_dir = join(output_dir, "log4cpp")
+    download_to = install_dir if sys.platform == "win32" else join(install_dir, "build")
+
     download_and_unzip(
-        log4cpp_url(version),
-        output_dir,
-        creates=dep_ver,
-        filename=f"log4cpp-{version}.tar.gz",
+        log4cpp_url(version), download_to, filename=f"log4cpp-{version}.tar.gz"
     )
-    log4cpp_dir = join(output_dir, f"log4cpp")
-    build_fn = build_log4cpp_win32 if sys.platform == "win32" else build_log4cpp_posix
-    return build_fn(log4cpp_dir, compiler)
+    if sys.platform == "win32":
+        return build_log4cpp_win32(install_dir, compiler)
+    else:
+        return build_log4cpp_posix(install_dir, compiler)
 
 
 def build_log4cpp_win32(log4cpp_dir, compiler):
@@ -38,12 +38,12 @@ def build_log4cpp_win32(log4cpp_dir, compiler):
     return run_and_stream(cmd=temp_script, cwd=build_dir).returncode == 0
 
 
-def build_log4cpp_posix(output_dir, compiler):
+def build_log4cpp_posix(build_dir, install_dir):
     temp_script = build_script(
-        output_dir,
+        build_dir,
         f"""
-            ./configure
+            ./configure --prefix={install_dir}
             make --jobs=10
         """,
     )
-    return run_and_stream(cmd=temp_script, cwd=output_dir).returncode == 0
+    return run_and_stream(cmd=temp_script, cwd=build_dir).returncode == 0
