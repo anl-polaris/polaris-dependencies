@@ -91,7 +91,6 @@ copy %DEPSDIR%\wxWidgets-3.1.2\lib\vc_x64_dll\wx*310ud_*.dll %DEPSDIR%\antares_b
 copy %DEPSDIR%\wxWidgets-3.1.2\lib\vc_x64_dll\wx*310u_*.dll %DEPSDIR%\antares_bin\Release
 
 cd /D %~dp0
-call DisplayDate.cmd
 IF %BUILD_ERROR% NEQ 0 (ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1)
 ENDLOCAL
 ECHO STATUS: SUCCESS
