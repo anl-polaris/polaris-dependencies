@@ -269,14 +269,16 @@ def produce_package_():
 
     exclude_dirs = ["build2-build", "build-odb-"]
 
-    def exclude_build_dirs(filename):
-        return any([e in filename for e in exclude_dirs])
+    def exclude_build_dirs(x):
+        if any([e in x.name for e in exclude_dirs]):
+            return None
+        return x
 
     with tarfile.open(output_filename, "w:gz") as tar:
         tar.add(
             deps_directory,
             arcname=os.path.basename(deps_directory),
-            exclude=exclude_build_dirs,
+            filter=exclude_build_dirs,
         )
 
     print("You should now upload the packaged tar.gz file to Box: ")
