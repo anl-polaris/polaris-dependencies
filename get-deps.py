@@ -21,8 +21,7 @@ def main():
     setup_variables()
 
     # We have to do this first as we need bpkg to compile the odb library later
-    build_dep("build2", "0.14.0")
-    add_build2_to_path()
+    ensure_bpkg()
 
     log4cpp_builder = lambda: build_log4cpp(deps_directory, "1.1.3", compiler_version)
     odb_builder = lambda: build_odb(deps_directory, "2.5.0", compiler_version)
@@ -93,11 +92,32 @@ def setup_variables():
         mkdir_p(i)
 
 
+def ensure_bpkg():
+    # If bpkg is already on the path - we don't need to do anything
+    if distutils.spawn.find_executable("bpkg"):
+        return
+    add_build2_to_path()
+    # If we now have a working executable - we don't need to build it
+    if distutils.spawn.find_executable("bpkg"):
+        return
+
+    # If we still dont have a working executable - lets try to build it
+    print(
+        """
+      Building bpkg - this takes a long time. If you have already built it make sure it's on the path
+                      to skip this step
+    """
+    )
+    build_dep("build2", "0.14.0")
+
+
 def add_build2_to_path():
+    # If we are building bpkg, it will end up in the build2/bin folder
+    # make sure that folder is on the path and teh corresponding lib folder is
+    # on the LD_LIBRARY_PATH
     build2_bin_dir = abspath(join(deps_directory, "build2", "bin"))
     if build2_bin_dir not in os.environ["PATH"]:
         os.environ["PATH"] = build2_bin_dir + os.pathsep + os.environ["PATH"]
-    distutils.spawn.find_executable("bpkg")
 
     build2_lib_dir = abspath(join(deps_directory, "build2", "lib"))
     if "LD_LIBRARY_PATH" not in os.environ:
@@ -247,8 +267,17 @@ def produce_package_():
     output_filename = join(base_directory, f"{compiler_version}.tar.gz")
     print(f"Packaging -> {output_filename}")
 
+    exclude_dirs = ["build2-build", "build-odb-"]
+
+    def exclude_build_dirs(filename):
+        return any([e in filename for e in exclude_dirs])
+
     with tarfile.open(output_filename, "w:gz") as tar:
-        tar.add(deps_directory, arcname=os.path.basename(deps_directory))
+        tar.add(
+            deps_directory,
+            arcname=os.path.basename(deps_directory),
+            exclude=exclude_build_dirs,
+        )
 
     print("You should now upload the packaged tar.gz file to Box: ")
     print("  https://anl.app.box.com/folder/164571273717")
