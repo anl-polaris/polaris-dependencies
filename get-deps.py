@@ -1,5 +1,4 @@
 import sys, os, shutil, getopt
-import distutils.spawn
 from os.path import join, abspath, normpath
 import tarfile
 from python.build_log4cpp import build_log4cpp
@@ -94,11 +93,13 @@ def setup_variables():
 
 def ensure_bpkg():
     # If bpkg is already on the path - we don't need to do anything
-    if distutils.spawn.find_executable("bpkg"):
+    if shutil.which("bpkg"):
         return
+
     add_build2_to_path()
+
     # If we now have a working executable - we don't need to build it
-    if distutils.spawn.find_executable("bpkg"):
+    if shutil.which("bpkg"):
         return
 
     # If we still dont have a working executable - lets try to build it
