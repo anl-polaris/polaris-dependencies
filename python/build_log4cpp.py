@@ -20,7 +20,7 @@ def build_log4cpp(output_dir, version, compiler):
     if sys.platform == "win32":
         return build_log4cpp_win32(install_dir, compiler)
     else:
-        return build_log4cpp_posix(install_dir, compiler)
+        return build_log4cpp_posix(join(download_to,'log4cpp'),  install_dir)
 
 
 def build_log4cpp_win32(log4cpp_dir, compiler):
@@ -44,6 +44,7 @@ def build_log4cpp_posix(build_dir, install_dir):
         f"""
             ./configure --prefix={install_dir}
             make --jobs=10
+            make install
         """,
     )
     return run_and_stream(cmd=temp_script, cwd=build_dir).returncode == 0
