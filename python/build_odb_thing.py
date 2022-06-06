@@ -1,6 +1,3 @@
-import pathlib
-import shlex
-import subprocess
 from os.path import join
 from python.compiler_version import get_cxx_compiler
 
@@ -44,8 +41,11 @@ def create_bpkg_build_dir(deps_dir, version, thing, compiler):
     mkdir_p(lib_dir)
     mkdir_p(build_dir)
 
+    # Not sure why but "ODB compiler can only be built with GCC"
+    compiler = "gcc" if thing == "compiler" else compiler
+
     cmd = ["bpkg", "create", "-v", "-d", f"{build_dir}", "cc", "--wipe"]
-    cmd.append(f'config.cxx="{get_cxx_compiler(compiler)}"')
+    cmd.append(get_cxx(compiler))
     cmd.append(f"config.cc.coptions={get_cc_options(thing, compiler)}")
     cmd.append(f"config.cxx.coptions={get_std(compiler)}")
     cmd.append(get_linker_options(thing, compiler))
@@ -56,6 +56,10 @@ def create_bpkg_build_dir(deps_dir, version, thing, compiler):
     cmd = [o for o in cmd if o]  # Remove any None that came from unneeded options
     run_and_stream(cmd, cwd=build_dir)
     return build_dir
+
+
+def get_cxx(compiler):
+    return f'config.cxx="{get_cxx_compiler(compiler)}"'
 
 
 def get_cc_options(thing, compiler):
