@@ -8,6 +8,7 @@ from python.compiler_version import get_compiler_version
 from python.build_odb_thing import build_odb
 from python.build_boost import build_boost
 from python.build_glpk import build_glpk
+from python.build_tflite import build_tflite
 from python.build_log4cpp import build_log4cpp
 from python.utils import TeeLogger, mkdir_p, is_posix, is_windows, run_and_stream
 
@@ -29,6 +30,7 @@ def main():
     build_dep("rapidjson", "1.1.0")
     build_py_dep("boost", "1.71.0", lambda: build_boost(deps_directory))
     build_dep("tflite", "2.4.0")
+    build_py_dep("tflite", "2.9.1", lambda: build_tflite(deps_directory, "2.9.1"))
     build_py_dep("glpk", "4.65", lambda: build_glpk(deps_directory, "4.65"))
     build_py_dep("odb", "2.5.0", odb_builder)
     build_dep("gtest", "1.11.0")
@@ -287,7 +289,7 @@ def produce_package_():
         )
 
     print("You should now upload the packaged tar.gz file to Box: ")
-    print("  https://anl.app.box.com/folder/164571273717")
+    print("  https://anl.app.box.com/folder/164384930428")
 
 
 if __name__ == "__main__":
