@@ -97,6 +97,11 @@ def download_and_unzip(url, directory, creates=None, filename=None, after=None):
         after()
 
 
+def replace_in_file(file, pattern, replacement):
+    file = Path(file)
+    file.write_text(file.read_text().replace(pattern, replacement))
+
+
 @contextlib.contextmanager
 def chdir(path):
     """Changes working directory and returns to previous on exit."""

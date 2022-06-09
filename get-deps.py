@@ -25,12 +25,13 @@ def main():
 
     log4cpp_builder = lambda: build_log4cpp(deps_directory, "1.1.3", compiler_version)
     odb_builder = lambda: build_odb(deps_directory, "2.5.0", compiler_version)
+    tflite_builder = lambda: build_tflite(deps_directory, "2.9.1", compiler_version)
 
     build_py_dep("log4cpp", "1.1.3", log4cpp_builder)
     build_dep("rapidjson", "1.1.0")
     build_py_dep("boost", "1.71.0", lambda: build_boost(deps_directory))
     build_dep("tflite", "2.4.0")
-    build_py_dep("tflite", "2.9.1", lambda: build_tflite(deps_directory, "2.9.1"))
+    build_py_dep("tflite", "2.9.1", tflite_builder)
     build_py_dep("glpk", "4.65", lambda: build_glpk(deps_directory, "4.65"))
     build_py_dep("odb", "2.5.0", odb_builder)
     build_dep("gtest", "1.11.0")
@@ -120,7 +121,7 @@ def add_build2_to_path():
     # on the LD_LIBRARY_PATH
     build2_bin_dir = abspath(join(deps_directory, "build2", "bin"))
     if build2_bin_dir not in os.environ["PATH"]:
-        os.environ["PATH"] = build2_bin_dir + os.pathsep + os.environ["PATH"]
+        os.environ["PATH"] = os.environ["PATH"] + os.pathsep + build2_bin_dir
 
     build2_lib_dir = abspath(join(deps_directory, "build2", "lib"))
     if "LD_LIBRARY_PATH" not in os.environ:
