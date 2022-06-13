@@ -1,3 +1,4 @@
+import glob
 import os
 from subprocess import PIPE, run
 from os.path import join, exists
@@ -29,14 +30,9 @@ def get_windows_compiler(msvc_version_number):
             base_dir = join(base_dir, "Professsional")
         else:
             raise RuntimeError("Can't find installed VS 2017")
-        os.environ["VSINSTALLDIR"] = base_dir + "\\"
-        os.environ["VCROOT"] = f"{base_dir}\\VC\\Auxiliary\\Build\\"
         os.environ["VisualStudioVersion"] = "15.0"
-        os.environ["Platform"] = "x64"
         os.environ["CMake_Generator"] = "Visual Studio 15 Win64"
-        msbuild_exe = "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Professional\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-        os.environ["MSBUILD"] = msbuild_exe
-        os.environ["NMAKE"] = f"{base_dir}\\SDK\\ScopeCppSDK\\VC\\bin\\nmake.exe"
+        os.environ["MSBUILD"] = f"{base_dir}\\MSBuild\\15.0\\Bin\\MSBuild.exe"
     elif msvc_version_number == "16" or msvc_version_number == "2019":
         version = "16.0"
         base_dir = r"C:\Program Files (x86)\Microsoft Visual Studio\2019"
@@ -46,19 +42,37 @@ def get_windows_compiler(msvc_version_number):
             base_dir = join(base_dir, "Professsional")
         else:
             raise RuntimeError("Can't find installed VS 2019")
-        os.environ["VSINSTALLDIR"] = base_dir + "\\"
-        os.environ["VCROOT"] = f"{base_dir}\\VC\\Auxiliary\\Build\\"
         os.environ["VisualStudioVersion"] = "16.0"
-        os.environ["Platform"] = "x64"
         os.environ["CMake_Generator"] = "Visual Studio 16 2019"
-        # set NMAKE="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\SDK\ScopeCppSDK\VC\bin\nmake.exe"
-        msbuild_exe = f"{base_dir}\\MSBuild\\Current\\Bin\\MSBuild.exe"
-        os.environ["MSBUILD"] = msbuild_exe
-        os.environ["NMAKE"] = f"{base_dir}\\SDK\\ScopeCppSDK\\VC\\bin\\nmake.exe"
+        os.environ["MSBUILD"] = f"{base_dir}\\MSBuild\\Current\\Bin\\MSBuild.exe"
     else:
         return ""
 
+    if not exists(os.environ["MSBUILD"]):
+        raise RuntimeError("Can't find a version of MSBuild to use")
+
+    os.environ["VSINSTALLDIR"] = base_dir + "\\"
+    os.environ["VCROOT"] = f"{base_dir}\\VC\\Auxiliary\\Build\\"
+    os.environ["Platform"] = "x64"
+    os.environ["NMAKE"] = find_nmake(base_dir)
+
     return f"{compiler}-{version}"
+
+
+def find_nmake(base_dir):
+    first_choice = f"{base_dir}\\SDK\\ScopeCppSDK\\VC\\bin\\nmake.exe"
+    if exists(first_choice):
+        return first_choice
+    second_choice = f"{base_dir}\SDK\ScopeCppSDK\vc15\VC\bin\nmake.exe"
+    if exists(second_choice):
+        return second_choice
+
+    # Glob for it
+    pattern = join(base_dir, r"VC\Tools\MSVC\**\bin\Hostx64\x64\nmake.exe")
+    x = glob.glob(pattern, recursive=True)
+    if len(x) >= 1:
+        return x[-1]  # should be ordered by installed version number
+    raise RuntimeError("Can't find a version of NMake to use")
 
 
 def get_cxx_compiler(compiler_version):

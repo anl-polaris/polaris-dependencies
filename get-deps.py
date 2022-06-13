@@ -31,7 +31,7 @@ def main():
     build_dep("rapidjson", "1.1.0")
     build_py_dep("boost", "1.71.0", lambda: build_boost(deps_directory))
     build_dep("tflite", "2.4.0")
-    build_py_dep("tflite", "2.9.1", tflite_builder)
+    # build_py_dep("tflite", "2.9.1", tflite_builder)
     build_py_dep("glpk", "4.65", lambda: build_glpk(deps_directory, "4.65"))
     build_py_dep("odb", "2.5.0", odb_builder)
     build_dep("gtest", "1.11.0")
