@@ -194,7 +194,7 @@ def touch(x):
 
 
 def copy_files():
-    for f in ["Release", "RelWithDebug", "Debug"]:
+    for f in ["Release", "RelWithDebInfo", "Debug"]:
         folder = join(deps_directory, "bin", f)
         mkdir_p(folder)
 
