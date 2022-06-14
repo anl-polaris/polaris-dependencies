@@ -165,7 +165,7 @@ def mkdir_p(x):
     pathlib.Path(x).mkdir(parents=True, exist_ok=True)
 
 def copy_files():
-    for f in ["Release", "RelWithDebug", "Debug"]:
+    for f in ["Release", "RelWithDebInfo", "Debug"]:
         folder = join(deps_directory, 'bin', f)
         mkdir_p(folder)
 
