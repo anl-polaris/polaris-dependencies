@@ -26,8 +26,8 @@ def get_windows_compiler(msvc_version_number):
         base_dir = r"C:\Program Files (x86)\Microsoft Visual Studio\2017"
         if exists(join(base_dir, "Enterprise")):
             base_dir = join(base_dir, "Enterprise")
-        elif exists(join(base_dir, "Professsional")):
-            base_dir = join(base_dir, "Professsional")
+        elif exists(join(base_dir, "Professional")):
+            base_dir = join(base_dir, "Professional")
         else:
             raise RuntimeError("Can't find installed VS 2017")
         os.environ["VisualStudioVersion"] = "15.0"
