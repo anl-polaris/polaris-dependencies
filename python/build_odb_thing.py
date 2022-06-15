@@ -64,7 +64,7 @@ def get_cxx(compiler):
 
 def get_cc_options(thing, compiler):
     if "gcc" in compiler:
-        return "-O3" if thing == "debug" else "-O0 -g"
+        return "-O3" if thing != "debug" else "-O0 -g"
     if "msvc" in compiler:
         return "/Od /MDd /Zi" if thing == "debug" else "/O2 /MD"
 
