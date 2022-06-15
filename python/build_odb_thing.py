@@ -79,4 +79,9 @@ def get_std(compiler):
 def get_linker_options(thing, compiler):
     if "msvc" in compiler and thing == "debug":
         return "config.cc.loptions=/DEBUG"
+    if thing == "compiler":
+        # To avoid having to copy around libstdc++-6.dll and libgcc-whatever.dll, we will compile the
+        # odb compiler with staticly linked runtime (which is always gcc)
+        # - note the hacky allow-multiple-definitions
+        return "config.cc.loptions=-static-libgcc -static-libstdc++ -Wl,-allow-multiple-definition"
     return None
