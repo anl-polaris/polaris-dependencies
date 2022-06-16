@@ -268,7 +268,9 @@ def produce_package_():
     print("\n--------------------------")
     print("        Packaging")
     print("--------------------------\n")
-    output_filename = join(base_directory, f"{compiler_version}.tar.gz")
+    output_filename = join(
+        base_directory, f"{compiler_version}-{build_platform()}.tar.gz"
+    )
     print(f"Packaging -> {output_filename}")
 
     exclude_dirs = ["build2-build", "build-odb-", "tensorflow_src"]
@@ -291,6 +293,19 @@ def produce_package_():
 
     print("You should now upload the packaged tar.gz file to Box: ")
     print("  https://anl.app.box.com/folder/164384930428")
+
+
+def build_platform():
+    if is_windows():
+        return "win32"
+
+    try:
+        import distro
+    except Exception as e:
+        print("Please 'pip install distro'")
+        raise e
+
+    return f"{distro.id()}-{distro.version()}"
 
 
 if __name__ == "__main__":
