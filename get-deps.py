@@ -1,5 +1,6 @@
-import sys, os, shutil, getopt
-from os.path import join, abspath, normpath
+import sys, os, getopt
+from os.path import join, abspath, normpath, exists
+from shutil import copy, copytree, which
 import tarfile
 from python.build_log4cpp import build_log4cpp
 
@@ -16,6 +17,9 @@ from python.utils import TeeLogger, mkdir_p, is_posix, is_windows, run_and_strea
 # python ./get-deps.py -d {depsdir} -c {compiler}
 # python ./get-deps.py --dependencies {depsdir} --compiler {compiler}
 
+odb_version = "2.5.0"
+glpk_version = "4.65"
+
 
 def main():
     setup_variables()
@@ -24,7 +28,7 @@ def main():
     ensure_bpkg()
 
     log4cpp_builder = lambda: build_log4cpp(deps_directory, "1.1.3", compiler_version)
-    odb_builder = lambda: build_odb(deps_directory, "2.5.0", compiler_version)
+    odb_builder = lambda: build_odb(deps_directory, odb_version, compiler_version)
     tflite_builder = lambda: build_tflite(deps_directory, "2.9.1", compiler_version)
 
     build_py_dep("log4cpp", "1.1.3", log4cpp_builder)
@@ -33,7 +37,7 @@ def main():
     build_dep("tflite", "2.4.0")
     # build_py_dep("tflite", "2.9.1", tflite_builder)
     build_py_dep("glpk", "4.65", lambda: build_glpk(deps_directory, "4.65"))
-    build_py_dep("odb", "2.5.0", odb_builder)
+    build_py_dep("odb", odb_version, odb_builder)
     build_dep("gtest", "1.11.0")
 
     if is_windows():
@@ -96,13 +100,13 @@ def setup_variables():
 
 def ensure_bpkg():
     # If bpkg is already on the path - we don't need to do anything
-    if shutil.which("bpkg"):
+    if which("bpkg"):
         return
 
     add_build2_to_path()
 
     # If we now have a working executable - we don't need to build it
-    if shutil.which("bpkg"):
+    if which("bpkg"):
         return
 
     # If we still dont have a working executable - lets try to build it
@@ -137,7 +141,7 @@ def build_py_dep(dep, version, fn):
     dep_ver = f"{dep}-{version}"
     log_file = os.path.normpath(logs_directory + f"/{dep}_{version}_build.log")
 
-    if already_built(status_directory, dep, version):
+    if build_suceeded(status_directory, dep, version):
         print(f"  {dep_ver:<18}  - skipping - already built")
         return
     print(f"  {dep_ver:<18}  - building -> {log_file}")
@@ -181,7 +185,7 @@ def mark_as(status_directory, dep, version, status):
     touch(f"{status_directory}/{dep}-{version}-{status}")
 
 
-def already_built(status_directory, dep, version):
+def build_suceeded(status_directory, dep, version):
     return os.path.exists(f"{status_directory}/{dep}-{version}-success")
 
 
@@ -194,62 +198,34 @@ def touch(x):
 
 
 def copy_files():
-    for f in ["Release", "RelWithDebInfo", "Debug"]:
+    odb_success = build_suceeded(status_directory, "odb", odb_version)
+    glpk_success = build_suceeded(status_directory, "glpk", glpk_version)
+    tflite_24_success = build_suceeded(status_directory, "tflite", "2.4.0")
+
+    for f in ["Release", "RelWithDebug", "Debug"]:
         folder = join(deps_directory, "bin", f)
         mkdir_p(folder)
 
         # Split up odb by Rel or Debug
-        if "Rel" in folder:
-            if os.path.exists(
-                f"{deps_directory}/odb-2.5.0-release/bin/"
-            ) and os.path.exists(f"{status_directory}/odb-2.5.0-success"):
-                shutil.copytree(
-                    f"{deps_directory}/odb-2.5.0-release/bin/",
-                    f"{deps_directory}/bin/Release/",
-                    dirs_exist_ok=True,
-                )
-                shutil.copytree(
-                    f"{deps_directory}/odb-2.5.0-release/bin/",
-                    f"{deps_directory}/bin/RelWithDebug/",
-                    dirs_exist_ok=True,
-                )
-        else:
-            if os.path.exists(
-                f"{deps_directory}/odb-2.5.0-debug/bin/"
-            ) and os.path.exists(f"{status_directory}/odb-2.5.0-success"):
-                shutil.copytree(
-                    f"{deps_directory}/odb-2.5.0-debug/bin/",
-                    f"{deps_directory}/bin/Debug/",
-                    dirs_exist_ok=True,
-                )
+        token = "release" if "Rel" in folder else "debug"
+        bin_folder = join(deps_directory, f"odb-2.5.0-{token}", "bin")
+        if os.path.exists(bin_folder) and odb_success:
+            copytree(bin_folder, folder, dirs_exist_ok=True)
 
         # Copy glpk and tflite regardless of version
-        if os.path.isfile(
-            f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll"
-        ) and os.path.exists(f"{status_directory}/glpk-4.65-success"):
-            shutil.copy(
-                f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll",
-                f"{folder}/glpk_4_65.dll",
-            )
+        glpk_dll_file = f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll"
+        if os.path.isfile(glpk_dll_file) and glpk_success:
+            copy(glpk_dll_file, f"{folder}/glpk_4_65.dll")
+
         # TFLite has some weird permissions issue, adding checks to avoid issues...
-        if os.path.exists(
-            f"{deps_directory}/tflite-2.4.0/tensorflow/lite/"
-        ) and os.path.exists(f"{status_directory}/tflite-2.4.0-success"):
-            if not os.path.exists(f"{folder}/tensorflowlite.dll"):
-                shutil.copy(
-                    f"{deps_directory}/tflite-2.4.0/tensorflow/lite/tensorflowlite.dll",
-                    f"{folder}/tensorflowlite.dll",
-                )
-            if not os.path.exists(f"{folder}/tensorflowlite.dll.if.lib"):
-                shutil.copy(
-                    f"{deps_directory}/tflite-2.4.0/tensorflow/lite/tensorflowlite.dll.if.lib",
-                    f"{folder}/tensorflowlite.dll.if.lib",
-                )
-            if not os.path.exists(f"{folder}/tensorflowlite.pdb"):
-                shutil.copy(
-                    f"{deps_directory}/tflite-2.4.0/tensorflow/lite/tensorflowlite.pdb",
-                    f"{folder}/tensorflowlite.pdb",
-                )
+        source_dir = join(deps_directory, "tflite-2.4.0", "tensorflow", "lite")
+        if os.path.exists(source_dir) and tflite_24_success:
+            for ext in ["dll", "dll.if.lib", "pdb"]:
+                source = join(source_dir, f"tensorflowlite.{ext}")
+                target = join(folder, f"tensorflowlite.{ext}")
+
+                if not exists(target):
+                    copy(source, target)
 
 
 def summarise():
@@ -273,16 +249,31 @@ def produce_package_():
     )
     print(f"Packaging -> {output_filename}")
 
-    exclude_dirs = ["build2-build", "build-odb-", "tensorflow_src"]
+    ignored_dirs = []
+    include_dirs = [
+        "log4cpp",
+        "boost_1_71_0",
+        "build2",
+        "glpk-4.65",
+        "googletest-release-1.11.0",
+        "odb-2.5.0-debug",
+        "odb-2.5.0-release",
+        "rapidjson-1.1.0",
+        "tflite-2.4.0",
+    ]
+    if compiler_version != "msvc-15.0":
+        include_dirs.append("tflite-2.9.1")
+    include_dirs = [f"{compiler_version}/{e}" for e in include_dirs]
+    exclude_dir = f"{compiler_version}/build2-build"
 
     def exclude_build_dirs(x):
-        if (
-            any([e in x.name for e in exclude_dirs])
-            or x.name.endswith("zip")
-            or x.name.endswith("gz")
-        ):
-            return None
-        return x
+        match = [x.name.startswith(e) for e in include_dirs]
+        match = match or x.name == compiler_version
+        match = match and x.name != exclude_dir
+        if match:
+            return x
+        ignored_dirs.append(x.name)
+        return None
 
     with tarfile.open(output_filename, "w:gz") as tar:
         tar.add(
@@ -290,6 +281,10 @@ def produce_package_():
             arcname=os.path.basename(deps_directory),
             filter=exclude_build_dirs,
         )
+
+    print("The following sub-directories were excluded from package:")
+    for i in ignored_dirs:
+        print("  " + i)
 
     print("You should now upload the packaged tar.gz file to Box: ")
     print("  https://anl.app.box.com/folder/164384930428")

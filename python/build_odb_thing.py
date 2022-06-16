@@ -1,7 +1,7 @@
 from os.path import join
 from python.compiler_version import get_cxx_compiler
 
-from python.utils import mkdir_p, run_and_stream, is_posix
+from python.utils import is_windows, mkdir_p, run_and_stream, is_posix
 
 
 def build_odb(deps_dir, version, compiler):
@@ -35,10 +35,8 @@ def build_odb_thing(deps_dir, version, thing, compiler):
 
 
 def create_bpkg_build_dir(deps_dir, version, thing, compiler):
-    install_dir = join(deps_dir, f"odb-{version}-{thing}")
     build_dir = join(deps_dir, f"build-odb-{version}-{thing}")
-    lib_dir = join(install_dir, "lib")
-    mkdir_p(lib_dir)
+    install_dir = get_install_dir(deps_dir, version, thing)
     mkdir_p(build_dir)
 
     # Not sure why but "ODB compiler can only be built with GCC"
@@ -56,6 +54,14 @@ def create_bpkg_build_dir(deps_dir, version, thing, compiler):
     cmd = [o for o in cmd if o]  # Remove any None that came from unneeded options
     run_and_stream(cmd, cwd=build_dir)
     return build_dir
+
+
+def get_install_dir(deps_dir, version, thing):
+    # On windows we make sure to drop the odb.exe into the build2 folder so that it is next to the
+    # shared libraries and binaries that it needs to run
+    if thing == "compiler" and is_windows:
+        return join(deps_dir, f"build2")
+    return join(deps_dir, f"odb-{version}-{thing}")
 
 
 def get_cxx(compiler):
@@ -79,9 +85,9 @@ def get_std(compiler):
 def get_linker_options(thing, compiler):
     if "msvc" in compiler and thing == "debug":
         return "config.cc.loptions=/DEBUG"
-    if thing == "compiler":
-        # To avoid having to copy around libstdc++-6.dll and libgcc-whatever.dll, we will compile the
-        # odb compiler with staticly linked runtime (which is always gcc)
-        # - note the hacky allow-multiple-definitions
-        return "config.cc.loptions=-static-libgcc -static-libstdc++ -Wl,-allow-multiple-definition"
+    # if thing == "compiler":
+    #     # To avoid having to copy around libstdc++-6.dll and libgcc-whatever.dll, we will compile the
+    #     # odb compiler with staticly linked runtime (which is always gcc)
+    #     # - note the hacky allow-multiple-definitions
+    #     return "config.cc.loptions=-static-libgcc -static-libstdc++ -Wl,-allow-multiple-definition"
     return None
