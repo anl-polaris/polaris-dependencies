@@ -28,11 +28,12 @@ def build_tflite_(output_dir, src_dir, compiler):
         # 2019 can be used in a 2017 project
         os.environ['CXXFLAGS'] = "-d2FH4-"
 
-    cmd = f'cmake {src_dir}/tensorflow/lite'
+    cmd = cmake_gen_cmd(compiler, src_dir)
     temp_script = build_script(output_dir, cmd, compiler)
     if run_and_stream(cmd=temp_script, cwd=output_dir).returncode != 0:
         if old_windows_compiler:
             get_windows_compiler(old_windows_compiler)
+            os.environ['CXXFLAGS'] = None
         return False
 
     build_cmd = "cmake --build . -j"
@@ -44,6 +45,7 @@ def build_tflite_(output_dir, src_dir, compiler):
     success = run_and_stream(cmd=temp_script, cwd=output_dir).returncode == 0
     if old_windows_compiler:
         get_windows_compiler(old_windows_compiler)
+        os.environ['CXXFLAGS'] = None
 
     if not success:
         return False
@@ -55,6 +57,14 @@ def build_tflite_(output_dir, src_dir, compiler):
     copytree(join(output_dir, 'abseil-cpp', 'absl'), join(include_dir, 'absl'), dirs_exist_ok=True)
     copytree(join(src_dir, 'tensorflow', 'lite'), join(tf_include_dir, 'lite'), dirs_exist_ok=True)
     return True
+
+def cmake_gen_cmd(compiler, src_dir):
+    if "msvc" not in compiler:
+        return f'cmake {src_dir}/tensorflow/lite'
+    architecture = "" if compiler == "msvc-15.0" else "-A x64"
+    gen = f'-G "{ os.environ["CMake_Generator"] }"'
+
+    return f'cmake {gen} {architecture} {src_dir}/tensorflow/lite'
 
 def make_msvc_adjustments(output_dir, src_dir):
 
