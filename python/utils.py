@@ -48,16 +48,17 @@ def mkdir_p(x):
     Path(x).mkdir(parents=True, exist_ok=True)
 
 
-def build_script(output_dir, contents):
+def build_script(output_dir, contents, compiler=None):
     extension = "bat" if is_windows() else "sh"
     output_file = join(output_dir, f"temp.{extension}")
     mkdir_p(output_dir)
+    contents = wrap_vcvars_bat(dedent(contents), compiler)
     with open(output_file, "w") as f:
         # Make the script is self executable
         if is_posix():
             f.write("#!/usr/bin/env bash\n")
 
-        f.write(dedent(contents))
+        f.write(contents)
 
     # Make the script executable (bat are automatically executable)
     if is_posix():
@@ -78,6 +79,14 @@ def run_and_stream(cmd, cwd):
     process.wait()
     return process
 
+
+def wrap_vcvars_bat(contents, compiler):
+    if compiler is None or "msvc" not in compiler:
+        return contents
+    return dedent(f"""
+            call "{os.environ['VCROOT']}\\vcvarsall.bat" x64
+            {contents}
+           """)
 
 def download_and_unzip(url, directory, creates=None, filename=None, after=None):
     if creates and exists(join(directory, creates)):

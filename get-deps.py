@@ -270,6 +270,7 @@ def produce_package_():
         match = [x.name.startswith(e) for e in include_dirs]
         match = match or x.name == compiler_version
         match = match and x.name != exclude_dir
+        match = match and not (x.name.endswith(".zip") or x.name.endswith(".gz"))
         if match:
             return x
         ignored_dirs.append(x.name)

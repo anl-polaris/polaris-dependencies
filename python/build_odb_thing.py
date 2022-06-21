@@ -1,7 +1,11 @@
+import os
 from os.path import join
+import shlex
+import shutil
+from textwrap import dedent
 from python.compiler_version import get_cxx_compiler
 
-from python.utils import is_windows, mkdir_p, run_and_stream, is_posix
+from python.utils import build_script, is_windows, mkdir_p, run_and_stream, is_posix
 
 
 def build_odb(deps_dir, version, compiler):
@@ -13,23 +17,28 @@ def build_odb(deps_dir, version, compiler):
 
 def build_odb_thing(deps_dir, version, thing, compiler):
     build_dir = create_bpkg_build_dir(deps_dir, version, thing, compiler)
+    bpkg = shutil.which('bpkg')
 
-    def run(cmd):
-        if run_and_stream(cmd, cwd=build_dir).returncode != 0:
-            raise RuntimeError(f"Error while running: {cmd}")
+    def run(contents):
+        temp_script = build_script(deps_dir, contents, compiler)
+        if run_and_stream(temp_script, cwd=build_dir).returncode != 0:
+            raise RuntimeError(f"Error while running: {contents}")
 
     if thing == "compiler":
-        run("bpkg build odb@https://pkg.cppget.org/1/beta --yes --trust-yes")
-        run("bpkg test odb")
-        run("bpkg install odb")
+        run(f"""
+                {bpkg} build odb@https://pkg.cppget.org/1/beta --yes --trust-yes
+                {bpkg} test odb
+                {bpkg} install odb
+            """)
+
     elif (thing == "debug") or (thing == "release"):
-        run("bpkg add https://pkg.cppget.org/1/beta")
-        run("bpkg fetch --trust-yes")
-        run("bpkg build --yes libodb")
-        run("bpkg build --yes libodb-sqlite")
-        # run("bpkg build libodb-pgsql")
-        # run("bpkg build libodb-mysql")
-        run("bpkg install --all --recursive")
+        run(f"""
+            {bpkg} add https://pkg.cppget.org/1/beta
+            {bpkg} fetch --trust-yes
+            {bpkg} build --yes libodb
+            {bpkg} build --yes libodb-sqlite
+            {bpkg} install --all --recursive
+        """)
     else:
         raise RuntimeError(f"Don't know how build odb-thing: {thing}")
 
@@ -38,21 +47,27 @@ def create_bpkg_build_dir(deps_dir, version, thing, compiler):
     build_dir = join(deps_dir, f"build-odb-{version}-{thing}")
     install_dir = get_install_dir(deps_dir, version, thing)
     mkdir_p(build_dir)
+    bpkg = f'"{shutil.which("bpkg")}"' # get full path
 
     # Not sure why but "ODB compiler can only be built with GCC"
     compiler = "gcc" if thing == "compiler" else compiler
 
-    cmd = ["bpkg", "create", "-v", "-d", f"{build_dir}", "cc", "--wipe"]
+    cmd = [bpkg, "create", "-v", "-d", f"{build_dir}", "cc", "--wipe"]
     cmd.append(get_cxx(compiler))
     cmd.append(f"config.cc.coptions={get_cc_options(thing, compiler)}")
     cmd.append(f"config.cxx.coptions={get_std(compiler)}")
     cmd.append(get_linker_options(thing, compiler))
-    # The rpath is used to set a relative search path for so files
+    cmd.append(f'config.install.root={install_dir}')
     if is_posix():
-        cmd.append(f'config.bin.rpath="\$ORIGIN/../lib" ')
-    cmd.append(f'config.install.root="{install_dir}" ')
-    cmd = [o for o in cmd if o]  # Remove any None that came from unneeded options
-    run_and_stream(cmd, cwd=build_dir)
+        # The $ORIGIN in rpath is used to set a relative search path for so files
+        cmd.append(f'config.bin.rpath="\$ORIGIN/../lib"')
+
+    # Remove any None that came from unneeded options and " wrap any that contain spaces
+    cmd = [f'"{e}"' if " " in e else e for e in cmd if e]
+
+    temp_script = build_script(deps_dir, " ".join(cmd), compiler)
+    if run_and_stream(temp_script, cwd=build_dir).returncode != 0:
+        raise RuntimeError("Command failed")
     return build_dir
 
 

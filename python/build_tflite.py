@@ -16,7 +16,16 @@ def build_tflite(output_dir, version, compiler):
 
 
 def build_tflite_(output_dir, src_dir, compiler):
-    temp_script = build_script( output_dir, f"cmake {src_dir}/tensorflow/lite")
+    if compiler == "msvc-15.0":
+        # VS 2017 can't compile tflite (it needs c++20 features) so we switch to the 2019 comiler
+        # for this stage
+        compiler = "msvc-16.0"
+
+        # Disable smaller exception handling code so that the binaries built by
+        # 2019 can be used in a 2017 project
+        os.environ['CXXFLAGS'] = "-d2FH4-"
+    cmd = f'cmake {src_dir}/tensorflow/lite'
+    temp_script = build_script( output_dir, cmd, compiler)
     if run_and_stream(cmd=temp_script, cwd=output_dir).returncode != 0:
         return False
 
@@ -35,8 +44,8 @@ def build_tflite_(output_dir, src_dir, compiler):
     copytree(join(output_dir, 'flatbuffers', 'include', 'flatbuffers'), join(include_dir, 'flatbuffers'), dirs_exist_ok=True)
     copytree(join(output_dir, 'abseil-cpp', 'absl'), join(include_dir, 'absl'), dirs_exist_ok=True)
     copytree(join(src_dir, 'tensorflow', 'lite'), join(tf_include_dir, 'lite'), dirs_exist_ok=True)
-    return True 
-        
+    return True
+
 def make_msvc_adjustments(output_dir, src_dir):
 
     # Files () uses designated initializers which requires c++20 support
