@@ -4,9 +4,10 @@ from shutil import copytree
 from python.compiler_version import get_windows_compiler
 from python.utils import build_script, download_and_unzip, replace_in_file, run_and_stream, mkdir_p
 
-
 def tflite_url(version):
-    return f"https://github.com/tensorflow/tensorflow/archive/refs/tags/v{version}.tar.gz"
+    return (
+        f"https://github.com/tensorflow/tensorflow/archive/refs/tags/v{version}.tar.gz"
+    )
 
 
 def build_tflite(output_dir, version, compiler):
@@ -50,8 +51,8 @@ def build_tflite_(output_dir, src_dir, compiler):
     if not success:
         return False
 
-    include_dir = join(output_dir, 'include')
-    tf_include_dir = join(include_dir, 'tensorflow')
+    include_dir = join(output_dir, "include")
+    tf_include_dir = join(include_dir, "tensorflow")
     mkdir_p(tf_include_dir)
     copytree(join(output_dir, 'flatbuffers', 'include', 'flatbuffers'), join(include_dir, 'flatbuffers'), dirs_exist_ok=True)
     copytree(join(output_dir, 'abseil-cpp', 'absl'), join(include_dir, 'absl'), dirs_exist_ok=True)
@@ -69,13 +70,21 @@ def cmake_gen_cmd(compiler, src_dir):
 def make_msvc_adjustments(output_dir, src_dir):
 
     # Files () uses designated initializers which requires c++20 support
-    tflite_vcxproj = join(output_dir, 'tensorflow-lite.vcxproj')
-    cpp14,cpp17,cpp20 = [f"<LanguageStandard>stdcpp{v}</LanguageStandard>" for v in [14, 17, 20]]
+    tflite_vcxproj = join(output_dir, "tensorflow-lite.vcxproj")
+    cpp14, cpp17, cpp20 = [
+        f"<LanguageStandard>stdcpp{v}</LanguageStandard>" for v in [14, 17, 20]
+    ]
     replace_in_file(tflite_vcxproj, cpp17, cpp20)
     replace_in_file(tflite_vcxproj, cpp14, cpp20)
 
     # These files use gcc specific macro __PRETTY_FUNCTION__, replace its usage with the corresponding MSVC version
-    pretty_func_files = ["depthwiseconv_float.h", "depthwiseconv_uint8.h", "integer_ops/depthwise_conv.h"]
-    opt_kernel_dir = join(src_dir, 'tensorflow', 'lite', 'kernels', 'internal', 'optimized')
+    pretty_func_files = [
+        "depthwiseconv_float.h",
+        "depthwiseconv_uint8.h",
+        "integer_ops/depthwise_conv.h",
+    ]
+    opt_kernel_dir = join(
+        src_dir, "tensorflow", "lite", "kernels", "internal", "optimized"
+    )
     for i in pretty_func_files:
-        replace_in_file(join(opt_kernel_dir, i), '__PRETTY_FUNCTION__', '__FUNCSIG__')
+        replace_in_file(join(opt_kernel_dir, i), "__PRETTY_FUNCTION__", "__FUNCSIG__")
