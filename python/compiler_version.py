@@ -20,8 +20,9 @@ def get_compiler_version(compiler):
 def get_windows_compiler(msvc_version_number):
     compiler = "msvc"
     version = ""
+    msvc_version_number = int(msvc_version_number)
 
-    if msvc_version_number == "15" or msvc_version_number == "2017":
+    if msvc_version_number == 15 or msvc_version_number == 2017:
         version = "15.0"
         base_dir = r"C:\Program Files (x86)\Microsoft Visual Studio\2017"
         if exists(join(base_dir, "Enterprise")):
@@ -33,7 +34,7 @@ def get_windows_compiler(msvc_version_number):
         os.environ["VisualStudioVersion"] = "15.0"
         os.environ["CMake_Generator"] = "Visual Studio 15 Win64"
         os.environ["MSBUILD"] = f"{base_dir}\\MSBuild\\15.0\\Bin\\MSBuild.exe"
-    elif msvc_version_number == "16" or msvc_version_number == "2019":
+    elif msvc_version_number == 16 or msvc_version_number == 2019:
         version = "16.0"
         base_dir = r"C:\Program Files (x86)\Microsoft Visual Studio\2019"
         if exists(join(base_dir, "Enterprise")):

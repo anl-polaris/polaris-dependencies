@@ -1,6 +1,7 @@
 import os, sys
 from os.path import join
 from shutil import copytree
+from python.compiler_version import get_windows_compiler
 from python.utils import build_script, download_and_unzip, replace_in_file, run_and_stream, mkdir_p
 
 
@@ -19,14 +20,19 @@ def build_tflite_(output_dir, src_dir, compiler):
     if compiler == "msvc-15.0":
         # VS 2017 can't compile tflite (it needs c++20 features) so we switch to the 2019 comiler
         # for this stage
+        get_windows_compiler(16)
+        old_windows_compiler = 15
         compiler = "msvc-16.0"
 
         # Disable smaller exception handling code so that the binaries built by
         # 2019 can be used in a 2017 project
         os.environ['CXXFLAGS'] = "-d2FH4-"
+
     cmd = f'cmake {src_dir}/tensorflow/lite'
-    temp_script = build_script( output_dir, cmd, compiler)
+    temp_script = build_script(output_dir, cmd, compiler)
     if run_and_stream(cmd=temp_script, cwd=output_dir).returncode != 0:
+        if old_windows_compiler:
+            get_windows_compiler(old_windows_compiler)
         return False
 
     build_cmd = "cmake --build . -j"
@@ -34,8 +40,12 @@ def build_tflite_(output_dir, src_dir, compiler):
         make_msvc_adjustments(output_dir, src_dir)
         build_cmd += " --config Release"
 
-    temp_script = build_script( output_dir, build_cmd)
-    if run_and_stream(cmd=temp_script, cwd=output_dir).returncode != 0:
+    temp_script = build_script(output_dir, build_cmd, compiler)
+    success = run_and_stream(cmd=temp_script, cwd=output_dir).returncode == 0
+    if old_windows_compiler:
+        get_windows_compiler(old_windows_compiler)
+
+    if not success:
         return False
 
     include_dir = join(output_dir, 'include')
