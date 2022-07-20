@@ -1,6 +1,17 @@
 # polaris-dependencies
 Files for downloading and building POLARIS dependencies
 
+To build locally run this:
+
+```
+python ./get-deps.py  [-c <COMPILER>] [-d <TARGET_DIR>] [-v] [-p]
+```
+
+The flags for the build script are as follows:
+* -c <compiler> - the compiler to use [default gcc or msvc-16.0]
+* -d <deps_dir> - the directory into which dependencies will be build [default /opt/polaris/deps or c:\opt\polaris\deps]
+* -v            - verbose mode - shows the output of the compilation even if it succeeds [default false]
+* -p            - produce a packaged .tar.gz of the entire deps dir (i.e. /opt/polaris/deps/gcc-10.3.0.tar.gz) [default false]
 
 ## Building using containers
 

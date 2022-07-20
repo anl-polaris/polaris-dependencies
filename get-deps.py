@@ -59,21 +59,17 @@ def setup_variables():
     if "POLARIS_DEPS_DIR" in os.environ:
         base_directory = os.environ["POLARIS_DEPS_DIR"]
     else:
-        base_directory = (
-            "/opt/polaris/deps" if is_posix() else "C:\\opt\\polaris\deps\\"
-        )
+        base_directory = "/opt/polaris/deps" if is_posix() else "C:\\opt\\polaris\deps\\"
 
     # compiler should be able to call MSVC on Windows
     global compiler
-    compiler = "gcc" if is_posix() else "15"
+    compiler = "gcc" if is_posix() else "16"
 
     global verbose, produce_package
     verbose, produce_package = False, False
     # Grab command line arguments (if any)
     argv = sys.argv[1:]
-    opts, args = getopt.getopt(
-        argv, "c:d:vp", ["compiler =", "dependencies =", "verbose", "package"]
-    )
+    opts, args = getopt.getopt(argv, "c:d:vp", ["compiler =", "dependencies =", "verbose", "package"])
     for opt, arg in opts:
         if opt in ["-c", "--compiler"]:
             compiler = arg
@@ -131,9 +127,7 @@ def add_build2_to_path():
     if "LD_LIBRARY_PATH" not in os.environ:
         os.environ["LD_LIBRARY_PATH"] = build2_lib_dir
     elif build2_lib_dir not in os.environ["LD_LIBRARY_PATH"]:
-        os.environ["LD_LIBRARY_PATH"] = (
-            build2_lib_dir + os.pathsep + os.environ["LD_LIBRARY_PATH"]
-        )
+        os.environ["LD_LIBRARY_PATH"] = build2_lib_dir + os.pathsep + os.environ["LD_LIBRARY_PATH"]
 
 
 def build_py_dep(dep, version, fn):
@@ -212,7 +206,7 @@ def copy_files():
         if os.path.exists(bin_folder) and odb_success:
             copytree(bin_folder, folder, dirs_exist_ok=True)
 
-        # Copy glpk and tflite regardless of version
+        # Copy glpk regardless of version
         glpk_dll_file = f"{deps_directory}/glpk-4.65/w64/glpk_4_65.dll"
         if os.path.isfile(glpk_dll_file) and glpk_success:
             copy(glpk_dll_file, f"{folder}/glpk_4_65.dll")
@@ -244,9 +238,7 @@ def produce_package_():
     print("\n--------------------------")
     print("        Packaging")
     print("--------------------------\n")
-    output_filename = join(
-        base_directory, f"{compiler_version}-{build_platform()}.tar.gz"
-    )
+    output_filename = join(base_directory, f"{compiler_version}-{build_platform()}.tar.gz")
     print(f"Packaging -> {output_filename}")
 
     ignored_dirs = []
