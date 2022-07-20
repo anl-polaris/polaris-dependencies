@@ -1,1 +1,4 @@
 __pycache__
+.vscode
+tmp
+*.tar.gz

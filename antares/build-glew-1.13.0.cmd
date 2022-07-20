@@ -56,7 +56,6 @@ IF %RELEASE_BUILD% NEQ 0 (ECHO MSBuild of Glew 1.13.0 Release project - FAIL)
 IF %DEBUG_BUILD% NEQ 0  (ECHO MSBuild of Glew 1.13.0 Debug project - FAIL)
 
 cd /D %FILEDIR%
-call DisplayDate.cmd
 IF %BUILD_ERROR% NEQ 0 (ECHO STATUS: FAIL &  ENDLOCAL & EXIT /B 1)
 ENDLOCAL
 ECHO STATUS: SUCCESS

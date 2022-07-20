@@ -62,7 +62,7 @@ set BUILD_ERROR=0
 set ERRORLEVEL=
 cd /D %BASEDIR%
 %FILEDIR%utils\wget --show-progress=off -O %TARBALL% "https://sourceforge.net/projects/log4cpp/files/latest/download" --no-check-certificate
-tar xzvf %TARBALL%
+tar xzvf --force-local %TARBALL%
 IF ERRORLEVEL 1 ( ECHO Download and Extract of '%TARBALL%' - FAIL  & ECHO STTATUS: FAIL & ENDLOCAL & EXIT /B 1 )
 
 mkdir %BUILDDIR%
@@ -80,7 +80,6 @@ IF "%VisualStudioVersion%" == "16.0" (
 )
 
 cd /D %FILEDIR%
-call DisplayDate.cmd
 IF %BUILD_ERROR% NEQ 0 (ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1)
 ENDLOCAL
 ECHO STATUS: SUCCESS

@@ -57,7 +57,6 @@ IF %ODB_DEBUG_BUILD% 		NEQ 0 (ECHO Build od ODB Debug project - FAIL)
 IF %ODB_RELEASE_BUILD%		NEQ 0 (ECHO Build of ODB Release project - FAIL)
 
 cd /D %FILEDIR%
-call DisplayDate.cmd
 IF %BUILD_ERROR% NEQ 0 (ECHO STATUS: FAIL & ENDLOCAL & EXIT /B 1)
 ENDLOCAL
 ECHO STATUS: SUCCESS
