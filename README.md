@@ -1,4 +1,20 @@
-# polaris-dependencies
+#  ⚠️:bangbang:⚠️ [DEPRECATED] ⚠️:bangbang:⚠️
+This repository is deprecated and has been moved to ANL internal Gitlab server:
+> https://git-out.gss.anl.gov/polaris/code/polaris-dependencies
+
+
+
+#
+#
+#
+#
+#
+#
+#
+#
+
+
+# Original Readme 
 Files for downloading and building POLARIS dependencies
 
 
